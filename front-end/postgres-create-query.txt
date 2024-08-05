@@ -1,0 +1,105 @@
+drop view budget_view;
+drop table transaction_category;
+drop table transaction;
+drop type transaction_status;
+drop table payee;
+drop table budget_category;
+drop table category;
+drop table account;
+drop table budget;
+
+create table account
+(
+    account_id uuid default gen_random_uuid() not null primary key,
+    name       text,
+    balance    numeric(15, 2)
+);
+alter table account owner to postgres;
+
+create table category
+(
+    category_id uuid default gen_random_uuid() not null primary key,
+    name        text
+);
+alter table category owner to postgres;
+
+create table payee
+(
+    payee_id            uuid default gen_random_uuid() not null primary key,
+    name                text,
+    default_category_id uuid references category(category_id)
+);
+alter table payee owner to postgres;
+
+create type transaction_status as enum ('new', 'cleared');
+alter type transaction_status owner to postgres;
+
+create table transaction
+(
+    transaction_id uuid default gen_random_uuid() not null primary key,
+    date           date,
+    account_id     uuid references account on delete restrict,
+    payee_id       uuid references payee on delete restrict,
+    total_amount   numeric(15, 2),
+    notes          text,
+    status         transaction_status
+);
+alter table transaction owner to postgres;
+
+create table transaction_category
+(
+    transaction_category_id serial primary key,
+    transaction_id          uuid references transaction on delete cascade,
+    category_id             uuid references category on delete restrict,
+    amount                  numeric(15, 2)
+);
+alter table transaction_category owner to postgres;
+
+create table budget
+(
+    budget_id  uuid default gen_random_uuid() not null primary key,
+    name       text,
+    month      integer,
+    year       integer
+);
+alter table budget owner to postgres;
+
+create table budget_category
+(
+    budget_category_id serial primary key,
+    budget_id          uuid references budget on delete cascade,
+    category_id        uuid references category on delete cascade,
+    amount_budgeted    numeric(15, 2)
+);
+alter table budget_category owner to postgres;
+
+create view budget_view as
+select
+    bc.budget_id,
+    b.year,
+    b.month,
+    bc.category_id,
+    c.name as category_name,
+    bc.budget_category_id,
+    bc.amount_budgeted,
+    coalesce(sum(tc.amount), 0) as amount_spent,
+    bc.amount_budgeted - coalesce(sum(tc.amount), 0) as amount_available
+from
+    budget_category bc
+join
+    budget b on bc.budget_id = b.budget_id
+join
+    category c on c.category_id = bc.category_id
+left join
+    transaction_category tc on bc.category_id = tc.category_id
+left join
+    transaction t on tc.transaction_id = t.transaction_id
+                 and extract(year from t.date) = b.year
+                 and extract(month from t.date) = b.month
+group by
+    bc.budget_id, b.year, b.month, bc.category_id, c.name, bc.budget_category_id, bc.amount_budgeted
+order by
+    bc.budget_id, b.year, b.month, bc.category_id;
+alter view budget_view owner to postgres;
+--drop view budget_view;
+--select * from budget_view;

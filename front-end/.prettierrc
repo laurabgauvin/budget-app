@@ -19,13 +19,5 @@
     "attributeGroups": [
         "$DEFAULT"
     ],
-    "attributeSort": "ASC",
-    "overrides": [
-        {
-            "files": "*.html",
-            "options": {
-                "singleQuote": false
-            }
-        }
-    ]
+    "attributeSort": "ASC"
 }

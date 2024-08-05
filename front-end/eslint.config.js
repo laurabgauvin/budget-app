@@ -1,7 +1,7 @@
-// @ts-check
 const eslint = require('@eslint/js');
 const tseslint = require('typescript-eslint');
 const angular = require('angular-eslint');
+const prettier = require('eslint-config-prettier');
 
 module.exports = tseslint.config(
     {
@@ -18,6 +18,7 @@ module.exports = tseslint.config(
             ...tseslint.configs.strictTypeChecked,
             ...tseslint.configs.stylisticTypeChecked,
             ...angular.configs.tsRecommended,
+            prettier,
         ],
         processor: angular.processInlineTemplates,
         rules: {
