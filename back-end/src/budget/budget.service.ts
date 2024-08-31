@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BudgetInfoDto } from './dto/budget-info.dto';
 import { CreateBudgetDto } from './dto/create-budget.dto';
+import { UpdateBudgetDto } from './dto/update-budget.dto';
 import { Budget } from './entities/budget.entity';
 
 @Injectable()
@@ -59,6 +60,26 @@ export class BudgetService {
             return db.budget_id;
         } catch {
             return null;
+        }
+    }
+
+    /**
+     * Update an existing budget
+     *
+     * @param updateBudgetDto
+     */
+    async updateBudget(updateBudgetDto: UpdateBudgetDto): Promise<boolean> {
+        try {
+            const budget = await this.getBudget(updateBudgetDto.budgetId);
+            if (budget) {
+                budget.name = updateBudgetDto.name;
+
+                await this._budgetRepository.save(budget);
+                return true;
+            }
+            return false;
+        } catch {
+            return false;
         }
     }
 
