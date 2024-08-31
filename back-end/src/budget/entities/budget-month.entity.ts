@@ -20,11 +20,11 @@ export class BudgetMonth {
 
     @Column('uuid', {
         name: 'budget_id',
+        nullable: false,
     })
     @ManyToOne(() => Budget, (budget) => budget.months, {
         cascade: true,
         onDelete: 'CASCADE',
-        nullable: false,
     })
     @JoinColumn({ name: 'budget_id', foreignKeyConstraintName: 'budget_month_budget_id_fkey' })
     budget!: Budget;

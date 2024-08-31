@@ -11,11 +11,11 @@ export class BudgetMonthCategory {
 
     @Column('uuid', {
         name: 'budget_month_id',
+        nullable: false,
     })
     @ManyToOne(() => BudgetMonth, (budgetMonth) => budgetMonth.categories, {
         cascade: true,
         onDelete: 'CASCADE',
-        nullable: false,
     })
     @JoinColumn({
         name: 'budget_month_id',
@@ -25,11 +25,11 @@ export class BudgetMonthCategory {
 
     @Column('uuid', {
         name: 'category_id',
+        nullable: false,
     })
     @ManyToOne(() => Category, (category) => category.budgetMonths, {
         cascade: true,
         onDelete: 'CASCADE',
-        nullable: false,
     })
     @JoinColumn({
         name: 'category_id',
