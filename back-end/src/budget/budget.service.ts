@@ -12,6 +12,9 @@ export class BudgetService {
         private _budgetRepository: Repository<Budget>
     ) {}
 
+    /**
+     * Get all the budgets
+     */
     async getAllBudgets(): Promise<BudgetInfoDto[]> {
         const budgets = await this._budgetRepository.find();
         if (budgets.length > 0) {
@@ -20,6 +23,11 @@ export class BudgetService {
         return [];
     }
 
+    /**
+     * Get a single budget
+     *
+     * @param id
+     */
     async getBudget(id: string): Promise<BudgetInfoDto | null> {
         const budget = await this._budgetRepository.findOneBy({ budget_id: id });
         if (budget) {
@@ -28,14 +36,21 @@ export class BudgetService {
         return null;
     }
 
-    async createBudget(createBudgetDto: CreateBudgetDto): Promise<string> {
-        const budget = new Budget();
-        budget.name = createBudgetDto.name;
-        budget.year = createBudgetDto.year;
-        budget.month = createBudgetDto.month;
+    /**
+     * Create a new budget
+     *
+     * @param createBudgetDto
+     */
+    async createBudget(createBudgetDto: CreateBudgetDto): Promise<string | null> {
+        try {
+            const budget = new Budget();
+            budget.name = createBudgetDto.name;
 
-        const db = await this._budgetRepository.save(budget);
-        return db.budget_id;
+            const db = await this._budgetRepository.save(budget);
+            return db.budget_id;
+        } catch {
+            return null;
+        }
     }
 
     /**
@@ -47,8 +62,6 @@ export class BudgetService {
         return {
             budgetId: budget.budget_id,
             name: budget.name,
-            year: budget.year,
-            month: budget.month,
         };
     }
 }

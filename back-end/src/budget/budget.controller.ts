@@ -18,7 +18,7 @@ export class BudgetController {
     }
 
     @Post()
-    createBudget(@Body() dto: CreateBudgetDto): Promise<string> {
+    createBudget(@Body() dto: CreateBudgetDto): Promise<string | null> {
         return this._budgetService.createBudget(dto);
     }
 }

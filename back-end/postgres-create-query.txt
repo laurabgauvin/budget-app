@@ -3,9 +3,10 @@ drop table transaction_category;
 drop table transaction;
 drop type transaction_status;
 drop table payee;
-drop table budget_category;
+drop table budget_month_category;
 drop table category;
 drop table account;
+drop table budget_month;
 drop table budget;
 
 create table account
@@ -58,48 +59,64 @@ alter table transaction_category owner to postgres;
 create table budget
 (
     budget_id  uuid default gen_random_uuid() not null primary key,
-    name       text,
-    month      integer,
-    year       integer
+    name       text
 );
 alter table budget owner to postgres;
 
-create table budget_category
+create table budget_month
 (
-    budget_category_id serial primary key,
-    budget_id          uuid references budget on delete cascade,
+    budget_month_id  uuid default gen_random_uuid() not null primary key,
+    budget_id        uuid references budget on delete cascade,
+    year             integer,
+    month            integer
+);
+alter table budget_month owner to postgres;
+
+create table budget_month_category
+(
+    budget_month_category_id serial primary key,
+    budget_month_id    uuid references budget_month on delete cascade,
     category_id        uuid references category on delete cascade,
     amount_budgeted    numeric(15, 2)
 );
-alter table budget_category owner to postgres;
+alter table budget_month_category owner to postgres;
 
 create view budget_view as
 select
-    bc.budget_id,
-    b.year,
-    b.month,
-    bc.category_id,
+    b.budget_id,
+    bm.budget_month_id,
+    bm.year,
+    bm.month,
+    bmc.category_id,
     c.name as category_name,
-    bc.budget_category_id,
-    bc.amount_budgeted,
+    bmc.budget_month_category_id,
+    bmc.amount_budgeted,
     coalesce(sum(tc.amount), 0) as amount_spent,
-    bc.amount_budgeted - coalesce(sum(tc.amount), 0) as amount_available
+    bmc.amount_budgeted - coalesce(sum(tc.amount), 0) as amount_available
 from
-    budget_category bc
+    budget_month_category bmc
 join
-    budget b on bc.budget_id = b.budget_id
+    budget_month bm on bm.budget_month_id = bmc.budget_month_id
 join
-    category c on c.category_id = bc.category_id
+    budget b on b.budget_id = bm.budget_id
+join
+    category c on c.category_id = bmc.category_id
 left join
-    transaction_category tc on bc.category_id = tc.category_id
+    transaction_category tc on bmc.category_id = tc.category_id
 left join
     transaction t on tc.transaction_id = t.transaction_id
-                 and extract(year from t.date) = b.year
-                 and extract(month from t.date) = b.month
+        and extract(year from t.date) = bm.year
+        and extract(month from t.date) = bm.month
 group by
-    bc.budget_id, b.year, b.month, bc.category_id, c.name, bc.budget_category_id, bc.amount_budgeted
+    b.budget_id,
+    bm.budget_month_id,
+    bm.year,
+    bm.month,
+    bmc.category_id, c.name,
+    bmc.budget_month_category_id,
+    bmc.amount_budgeted
 order by
-    bc.budget_id, b.year, b.month, bc.category_id;
+    b.budget_id, bm.year, bm.month, bmc.category_id;
 alter view budget_view owner to postgres;
 --drop view budget_view;
 --select * from budget_view;
