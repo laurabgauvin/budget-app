@@ -1,8 +1,17 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    Entity,
+    Index,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { BudgetMonthCategory } from '../../category/entities/budget-month-category.entity';
 import { Budget } from './budget.entity';
 
 @Entity()
+@Index('budget_month_budget_id_year_month_idx', ['budget', 'year', 'month'], { unique: true })
 export class BudgetMonth {
     @PrimaryGeneratedColumn('uuid', {
         primaryKeyConstraintName: 'budget_month_pkey',
@@ -23,12 +32,12 @@ export class BudgetMonth {
     @Column('integer', {
         nullable: true,
     })
-    month: number | undefined;
+    year: number | undefined;
 
     @Column('integer', {
         nullable: true,
     })
-    year: number | undefined;
+    month: number | undefined;
 
     @OneToMany(() => BudgetMonthCategory, (category) => category.budgetMonth)
     categories: BudgetMonthCategory[] | undefined;

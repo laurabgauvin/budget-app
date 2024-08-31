@@ -71,6 +71,9 @@ create table budget_month
     month            integer
 );
 alter table budget_month owner to postgres;
+create unique index on budget_month (
+    budget_id, year, month
+);
 
 create table budget_month_category
 (
