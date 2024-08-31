@@ -2,8 +2,9 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BudgetModule } from './budget/budget.module';
 import { Budget } from './budget/entities/budget.entity';
-import { TransactionsModule } from './transactions/transactions.module';
 import { CategoryModule } from './category/category.module';
+import { Category } from './category/entities/category.entity';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
     imports: [
@@ -15,7 +16,7 @@ import { CategoryModule } from './category/category.module';
             password: 'pux1qucvdzznc4CAV',
             database: 'postgres',
             schema: 'public',
-            entities: [Budget],
+            entities: [Budget, Category],
             // PROD: synchronize true should not be used in prod
             synchronize: true,
         }),

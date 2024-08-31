@@ -12,7 +12,7 @@ async function bootstrap() {
         })
     );
 
-    const config = new DocumentBuilder().setTitle('Budget Service').setVersion('0.0.1').build();
+    const config = new DocumentBuilder().setTitle('Budget Service').setVersion('0.0.2').build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);
 
