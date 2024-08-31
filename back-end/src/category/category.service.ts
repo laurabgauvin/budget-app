@@ -14,9 +14,9 @@ export class CategoryService {
     ) {}
 
     /**
-     * Get all categories
+     * Get all categories `CategoryInfoDto`
      */
-    async getAllCategories(): Promise<CategoryInfoDto[]> {
+    async getAllCategoryInfos(): Promise<CategoryInfoDto[]> {
         const categories = await this._categoryRepository.find();
         if (categories.length > 0) {
             return categories.map((c) => this._mapCategoryInfo(c));
@@ -25,16 +25,25 @@ export class CategoryService {
     }
 
     /**
-     * Get a single category
+     * Get a single category `CategoryInfoDto`
      *
      * @param id
      */
-    async getCategory(id: string): Promise<CategoryInfoDto | null> {
+    async getCategoryInfo(id: string): Promise<CategoryInfoDto | null> {
         const category = await this._categoryRepository.findOneBy({ category_id: id });
         if (category) {
             return this._mapCategoryInfo(category);
         }
         return null;
+    }
+
+    /**
+     * Get a single category `Category`
+     *
+     * @param id
+     */
+    async getCategory(id: string): Promise<Category | null> {
+        return await this._categoryRepository.findOneBy({ category_id: id });
     }
 
     /**
@@ -61,9 +70,7 @@ export class CategoryService {
      */
     async updateCategory(updateCategoryDto: UpdateCategoryDto): Promise<boolean> {
         try {
-            const category = await this._categoryRepository.findOneBy({
-                category_id: updateCategoryDto.categoryId,
-            });
+            const category = await this.getCategory(updateCategoryDto.categoryId);
             if (category) {
                 category.name = updateCategoryDto.name;
 
@@ -75,6 +82,10 @@ export class CategoryService {
             return false;
         }
     }
+
+    // -----------------------------------------------------------------------------------------------------
+    // @ Private methods
+    // -----------------------------------------------------------------------------------------------------
 
     /**
      * Map a `Category` to a `CategoryInfoDto`

@@ -10,12 +10,12 @@ export class CategoryController {
 
     @Get()
     getAllCategories(): Promise<CategoryInfoDto[]> {
-        return this._categoryService.getAllCategories();
+        return this._categoryService.getAllCategoryInfos();
     }
 
     @Get(':id')
     getCategoryById(@Param('id') id: string): Promise<CategoryInfoDto | null> {
-        return this._categoryService.getCategory(id);
+        return this._categoryService.getCategoryInfo(id);
     }
 
     @Post()
