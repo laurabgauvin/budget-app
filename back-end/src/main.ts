@@ -14,10 +14,11 @@ async function bootstrap() {
 
     const config = new DocumentBuilder()
         .setTitle('Budget Service')
+        .addTag('Account')
         .addTag('Category')
         .addTag('Budget')
         .addTag('Payee')
-        .setVersion('0.0.3')
+        .setVersion('0.0.4')
         .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);

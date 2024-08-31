@@ -30,7 +30,7 @@ export class CategoryService {
      * @param id
      */
     async getCategoryInfo(id: string): Promise<CategoryInfoDto | null> {
-        const category = await this._categoryRepository.findOneBy({ category_id: id });
+        const category = await this.getCategory(id);
         if (category) {
             return this._mapCategoryInfo(category);
         }

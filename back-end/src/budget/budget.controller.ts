@@ -11,12 +11,12 @@ export class BudgetController {
 
     @Get()
     getAllBudgets(): Promise<BudgetInfoDto[]> {
-        return this._budgetService.getAllBudgets();
+        return this._budgetService.getAllBudgetInfos();
     }
 
     @Get(':id')
     getBudgetById(@Param('id') id: string): Promise<BudgetInfoDto | null> {
-        return this._budgetService.getBudget(id);
+        return this._budgetService.getBudgetInfo(id);
     }
 
     @Post()

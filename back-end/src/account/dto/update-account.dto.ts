@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsUUID } from 'class-validator';
-import { CreatePayeeDto } from './create-payee.dto';
+import { CreateAccountDto } from './create-account.dto';
 
-export class UpdatePayeeDto extends CreatePayeeDto {
+export class UpdateAccountDto extends CreateAccountDto {
     @ApiProperty()
     @IsNotEmpty()
     @IsUUID()
-    payeeId!: string;
+    accountId!: string;
 }

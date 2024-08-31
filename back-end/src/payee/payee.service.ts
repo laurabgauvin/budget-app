@@ -32,7 +32,7 @@ export class PayeeService {
      * @param id
      */
     async getPayeeInfo(id: string): Promise<PayeeInfoDto | null> {
-        const payee = await this._payeeRepository.findOneBy({ payee_id: id });
+        const payee = await this.getPayee(id);
         if (payee) {
             return this._mapPayeeInfo(payee);
         }
@@ -74,7 +74,7 @@ export class PayeeService {
     }
 
     /**
-     * Update an existing
+     * Update an existing payee
      *
      * @param updatePayeeDto
      */

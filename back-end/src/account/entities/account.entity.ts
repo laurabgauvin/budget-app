@@ -21,6 +21,8 @@ export class Account {
     })
     balance: number | undefined;
 
+    // TODO: add account type
+
     @OneToMany(() => Transaction, (transaction) => transaction.account)
     transactions: Transaction[] | undefined;
 }

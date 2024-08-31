@@ -13,9 +13,9 @@ export class BudgetService {
     ) {}
 
     /**
-     * Get all the budgets
+     * Get all the budgets `BudgetInfoDto`
      */
-    async getAllBudgets(): Promise<BudgetInfoDto[]> {
+    async getAllBudgetInfos(): Promise<BudgetInfoDto[]> {
         const budgets = await this._budgetRepository.find();
         if (budgets.length > 0) {
             return budgets.map((b) => this._mapBudgetInfoDto(b));
@@ -24,16 +24,25 @@ export class BudgetService {
     }
 
     /**
-     * Get a single budget
+     * Get a single budget `BudgetInfoDto`
      *
      * @param id
      */
-    async getBudget(id: string): Promise<BudgetInfoDto | null> {
-        const budget = await this._budgetRepository.findOneBy({ budget_id: id });
+    async getBudgetInfo(id: string): Promise<BudgetInfoDto | null> {
+        const budget = await this.getBudget(id);
         if (budget) {
             return this._mapBudgetInfoDto(budget);
         }
         return null;
+    }
+
+    /**
+     * Get a single budget `Budget`
+     *
+     * @param id
+     */
+    async getBudget(id: string): Promise<Budget | null> {
+        return await this._budgetRepository.findOneBy({ budget_id: id });
     }
 
     /**
