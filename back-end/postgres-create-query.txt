@@ -1,22 +1,32 @@
 drop view budget_view;
 drop table transaction_category;
+drop table transaction_tag;
 drop table transaction;
-drop type transaction_status;
+drop table tag;
+drop type transaction_status_enum;
 drop table payee;
 drop table budget_month_category;
 drop table category;
+drop type account_type_enum;
 drop table account;
 drop table budget_month;
 drop table budget;
+
+-- ACCOUNT
+create type account_type_enum as enum ('cash', 'checking', 'savings', 'credit_card', 'line_of_credit', 'mortgage', 'loan', 'asset', 'liability');
+alter type account_type_enum owner to postgres;
 
 create table account
 (
     account_id uuid default gen_random_uuid() not null primary key,
     name       text,
-    balance    numeric(15, 2)
+    balance    numeric(15, 2),
+    type       account_type_enum default 'cash' not null,
+    tracked    boolean default true not null
 );
 alter table account owner to postgres;
 
+-- CATEGORY
 create table category
 (
     category_id uuid default gen_random_uuid() not null primary key,
@@ -24,6 +34,7 @@ create table category
 );
 alter table category owner to postgres;
 
+-- PAYEE
 create table payee
 (
     payee_id            uuid default gen_random_uuid() not null primary key,
@@ -32,37 +43,69 @@ create table payee
 );
 alter table payee owner to postgres;
 
-create type transaction_status as enum ('new', 'cleared');
-alter type transaction_status owner to postgres;
+-- TAG
+create table tag
+(
+    tag_id uuid default gen_random_uuid() not null primary key,
+    name   text
+);
+alter table tag owner to postgres;
+
+-- TRANSACTION
+create type transaction_status_enum as enum ('pending', 'cleared');
+alter type transaction_status_enum owner to postgres;
 
 create table transaction
 (
     transaction_id uuid default gen_random_uuid() not null primary key,
-    date           date,
+    date           date default now(),
     account_id     uuid references account on delete restrict,
     payee_id       uuid references payee on delete restrict,
     total_amount   numeric(15, 2),
     notes          text,
-    status         transaction_status
+    status         transaction_status_enum default 'pending' not null
 );
 alter table transaction owner to postgres;
 
+-- TRANSACTION TAG
+create table transaction_tag
+(
+    transaction_tag_id uuid default gen_random_uuid() not null primary key,
+    transaction_id     uuid references transaction on delete cascade,
+    tag_id             uuid references tag on delete cascade
+);
+alter table transaction_tag owner to postgres;
+create unique index on transaction_tag (
+    transaction_id, tag_id
+);
+create index on transaction_tag (
+    transaction_id
+);
+
+-- TRANSACTION CATEGORY
 create table transaction_category
 (
     transaction_category_id serial primary key,
     transaction_id          uuid references transaction on delete cascade,
     category_id             uuid references category on delete restrict,
-    amount                  numeric(15, 2)
+    amount                  numeric(15, 2),
+    notes                   text
 );
 alter table transaction_category owner to postgres;
+create index on transaction_category (
+    transaction_id
+);
 
+-- BUDGET
 create table budget
 (
-    budget_id  uuid default gen_random_uuid() not null primary key,
-    name       text
+    budget_id    uuid default gen_random_uuid() not null primary key,
+    name         text,
+    deleted_date date
 );
 alter table budget owner to postgres;
 
+-- BUDGET MONTH
 create table budget_month
 (
     budget_month_id  uuid default gen_random_uuid() not null primary key,
@@ -75,6 +118,7 @@ create unique index on budget_month (
     budget_id, year, month
 );
 
+-- BUDGET MONTH CATEGORY
 create table budget_month_category
 (
     budget_month_category_id serial primary key,
@@ -84,6 +128,7 @@ create table budget_month_category
 );
 alter table budget_month_category owner to postgres;
 
+-- BUDGET VIEW
 create view budget_view as
 select
     b.budget_id,
