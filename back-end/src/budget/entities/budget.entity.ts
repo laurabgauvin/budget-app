@@ -12,8 +12,8 @@ export class Budget {
     @Column('text', { nullable: true })
     name: string | undefined;
 
-    @DeleteDateColumn()
-    @Column('date', {
+    @DeleteDateColumn({
+        type: 'timestamp with time zone',
         name: 'deleted_date',
         nullable: true,
     })

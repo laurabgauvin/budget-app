@@ -2,15 +2,25 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BudgetInfoDto } from './dto/budget-info.dto';
+import { BudgetMonthCategoryDataDto } from './dto/budget-month-category-data.dto';
 import { CreateBudgetDto } from './dto/create-budget.dto';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
+import { BudgetMonthCategory } from './entities/budget-month-category.entity';
+import { BudgetMonth } from './entities/budget-month.entity';
 import { Budget } from './entities/budget.entity';
+import { BudgetView } from './entities/budget.view';
 
 @Injectable()
 export class BudgetService {
     constructor(
         @InjectRepository(Budget)
-        private _budgetRepository: Repository<Budget>
+        private _budgetRepository: Repository<Budget>,
+        @InjectRepository(BudgetMonth)
+        private _budgetMonthRepository: Repository<BudgetMonth>,
+        @InjectRepository(BudgetMonthCategory)
+        private _budgetMonthCategoryRepository: Repository<BudgetMonthCategory>,
+        @InjectRepository(BudgetView)
+        private _budgetViewRepository: Repository<BudgetView>
     ) {}
 
     /**
@@ -35,6 +45,37 @@ export class BudgetService {
             return this._mapBudgetInfoDto(budget);
         }
         return null;
+    }
+
+    /**
+     * Get the budgeted categories and amounts for the given month
+     *
+     * @param id
+     * @param year
+     * @param month
+     */
+    async getBudgetMonth(
+        id: string,
+        year: number,
+        month: number
+    ): Promise<BudgetMonthCategoryDataDto[] | []> {
+        const budgetView = await this._budgetViewRepository.findBy({
+            budgetId: id,
+            year: year,
+            month: month,
+        });
+        if (budgetView) {
+            return budgetView.map(
+                (bv): BudgetMonthCategoryDataDto => ({
+                    ...bv,
+                    categoryName: bv.categoryName ?? '',
+                    amountBudgeted: bv.amountBudgeted ?? 0,
+                    amountSpent: bv.amountSpent ?? 0,
+                    amountAvailable: bv.amountAvailable ?? 0,
+                })
+            );
+        }
+        return [];
     }
 
     /**
@@ -83,7 +124,23 @@ export class BudgetService {
         }
     }
 
-    // TODO: add soft-delete `this._budgetRepository.softDelete()`
+    /**
+     * Delete an existing budget
+     *
+     * @param budgetId
+     */
+    async deleteBudget(budgetId: string): Promise<boolean> {
+        try {
+            const budget = await this.getBudget(budgetId);
+            if (budget) {
+                await this._budgetRepository.softRemove(budget);
+                return true;
+            }
+            return true;
+        } catch {
+            return false;
+        }
+    }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Private methods
@@ -95,6 +152,9 @@ export class BudgetService {
      * @param budget
      */
     private _mapBudgetInfoDto(budget: Budget): BudgetInfoDto {
-        return budget;
+        return {
+            budgetId: budget.budgetId,
+            name: budget.name,
+        };
     }
 }

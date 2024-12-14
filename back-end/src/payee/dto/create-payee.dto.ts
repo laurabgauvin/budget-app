@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsUUID } from 'class-validator';
+import { IsNotEmpty } from 'class-validator';
 
 export class CreatePayeeDto {
     @ApiProperty()
@@ -7,9 +7,8 @@ export class CreatePayeeDto {
     name!: string;
 
     @ApiProperty({
-        type: 'string',
+        type: 'uuid',
         required: false,
     })
-    @IsUUID()
     defaultCategoryId: string | undefined;
 }

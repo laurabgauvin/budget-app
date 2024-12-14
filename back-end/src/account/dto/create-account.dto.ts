@@ -1,8 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
+import { IsBoolean, IsEnum, IsNotEmpty } from 'class-validator';
+import { AccountType } from '../entities/account.entity';
 
 export class CreateAccountDto {
     @ApiProperty()
     @IsNotEmpty()
     name!: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsEnum(AccountType)
+    type!: AccountType;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsBoolean()
+    tracked!: boolean;
 }

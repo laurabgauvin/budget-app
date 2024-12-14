@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { BudgetService } from './budget.service';
 import { BudgetInfoDto } from './dto/budget-info.dto';
+import { BudgetMonthCategoryDataDto } from './dto/budget-month-category-data.dto';
 import { CreateBudgetDto } from './dto/create-budget.dto';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
 
@@ -20,6 +21,15 @@ export class BudgetController {
         return this._budgetService.getBudgetInfo(id);
     }
 
+    @Get('month/:id/:year/:month')
+    getBudgetMonth(
+        @Param('id') id: string,
+        @Param('year') year: number,
+        @Param('month') month: number
+    ): Promise<BudgetMonthCategoryDataDto[] | []> {
+        return this._budgetService.getBudgetMonth(id, year, month);
+    }
+
     @Post()
     createBudget(@Body() dto: CreateBudgetDto): Promise<string | null> {
         return this._budgetService.createBudget(dto);
@@ -28,5 +38,10 @@ export class BudgetController {
     @Put()
     updateBudget(@Body() dto: UpdateBudgetDto): Promise<boolean> {
         return this._budgetService.updateBudget(dto);
+    }
+
+    @Delete(':id')
+    deleteBudget(@Param('id') id: string): Promise<boolean> {
+        return this._budgetService.deleteBudget(id);
     }
 }

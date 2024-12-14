@@ -7,7 +7,7 @@ import {
     OneToMany,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { BudgetMonthCategory } from '../../category/entities/budget-month-category.entity';
+import { BudgetMonthCategory } from './budget-month-category.entity';
 import { Budget } from './budget.entity';
 
 @Entity()

@@ -56,6 +56,8 @@ export class AccountService {
             const account = new Account();
             account.name = createAccountDto.name;
             account.balance = 0;
+            account.type = createAccountDto.type;
+            account.tracked = createAccountDto.tracked;
 
             const db = await this._accountRepository.save(account);
             return db.accountId;
@@ -74,6 +76,8 @@ export class AccountService {
             const account = await this.getAccount(updateAccountDto.accountId);
             if (account) {
                 account.name = updateAccountDto.name;
+                account.type = updateAccountDto.type;
+                account.tracked = updateAccountDto.tracked;
 
                 await this._accountRepository.save(account);
                 return true;
@@ -96,6 +100,7 @@ export class AccountService {
     private _mapAccountInfo(account: Account): AccountInfoDto {
         return {
             ...account,
+            name: account.name ?? '',
             balance: account.balance ?? 0,
         };
     }

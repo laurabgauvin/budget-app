@@ -1,8 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { BudgetMonth } from '../../budget/entities/budget-month.entity';
-import { Category } from './category.entity';
+import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Category } from '../../category/entities/category.entity';
+import { BudgetMonth } from './budget-month.entity';
 
 @Entity()
+@Index('budget_month_category_budget_month_id_category_id_idx', ['budgetMonth', 'category'], {
+    unique: true,
+})
 export class BudgetMonthCategory {
     @PrimaryGeneratedColumn({
         type: 'integer',
