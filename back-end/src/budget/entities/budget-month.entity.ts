@@ -14,9 +14,10 @@ import { Budget } from './budget.entity';
 @Index('budget_month_budget_id_year_month_idx', ['budget', 'year', 'month'], { unique: true })
 export class BudgetMonth {
     @PrimaryGeneratedColumn('uuid', {
+        name: 'budget_month_id',
         primaryKeyConstraintName: 'budget_month_pkey',
     })
-    budget_month_id!: number;
+    budgetMonthId!: number;
 
     @Column('uuid', {
         name: 'budget_id',
@@ -26,7 +27,11 @@ export class BudgetMonth {
         cascade: true,
         onDelete: 'CASCADE',
     })
-    @JoinColumn({ name: 'budget_id', foreignKeyConstraintName: 'budget_month_budget_id_fkey' })
+    @JoinColumn({
+        name: 'budget_id',
+        referencedColumnName: 'budgetId',
+        foreignKeyConstraintName: 'budget_month_budget_id_fkey',
+    })
     budget!: Budget;
 
     @Column('integer', {
@@ -39,6 +44,6 @@ export class BudgetMonth {
     })
     month: number | undefined;
 
-    @OneToMany(() => BudgetMonthCategory, (budgetMonthCategory) => budgetMonthCategory.budget_month)
+    @OneToMany(() => BudgetMonthCategory, (budgetMonthCategory) => budgetMonthCategory.budgetMonth)
     categories: BudgetMonthCategory[] | undefined;
 }

@@ -1,19 +1,30 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    Entity,
+    Index,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Account } from '../../account/entities/account.entity';
+import { TransactionCategory } from '../../category/entities/transaction-category.entity';
 import { Payee } from '../../payee/entities/payee.entity';
 import { TransactionTag } from '../../tags/entities/transaction-tag.entity';
 
 export enum TransactionStatus {
-    New = 'new',
+    Pending = 'pending',
     Cleared = 'cleared',
 }
 
 @Entity()
+@Index('transaction_account_id_date_idx', ['account', 'date'])
 export class Transaction {
     @PrimaryGeneratedColumn('uuid', {
+        name: 'transaction_id',
         primaryKeyConstraintName: 'transaction_pkey',
     })
-    transaction_id!: string;
+    transactionId!: string;
 
     @Column('date', {
         nullable: true,
@@ -28,7 +39,11 @@ export class Transaction {
         cascade: true,
         onDelete: 'RESTRICT',
     })
-    @JoinColumn({ name: 'account_id', foreignKeyConstraintName: 'transaction_account_id_fkey' })
+    @JoinColumn({
+        name: 'account_id',
+        referencedColumnName: 'accountId',
+        foreignKeyConstraintName: 'transaction_account_id_fkey',
+    })
     account!: Account;
 
     @Column('uuid', {
@@ -39,16 +54,21 @@ export class Transaction {
         cascade: true,
         onDelete: 'RESTRICT',
     })
-    @JoinColumn({ name: 'payee_id', foreignKeyConstraintName: 'transaction_payee_id_fkey' })
+    @JoinColumn({
+        name: 'payee_id',
+        referencedColumnName: 'payeeId',
+        foreignKeyConstraintName: 'transaction_payee_id_fkey',
+    })
     payee!: Payee;
 
     @Column({
         type: 'numeric',
+        name: 'total_amount',
         precision: 15,
         scale: 2,
         nullable: true,
     })
-    total_amount: number | undefined;
+    totalAmount: number | undefined;
 
     @Column('text', {
         nullable: true,
@@ -58,11 +78,14 @@ export class Transaction {
     @Column({
         type: 'enum',
         enum: TransactionStatus,
-        default: TransactionStatus.New,
+        default: TransactionStatus.Pending,
         nullable: false,
     })
     status!: TransactionStatus;
 
     @OneToMany(() => TransactionTag, (transactionTag) => transactionTag.transaction)
-    transaction_tags: TransactionTag[] | undefined;
+    transactionTags: TransactionTag[] | undefined;
+
+    @OneToMany(() => TransactionCategory, (transactionCategory) => transactionCategory.transaction)
+    transactionCategories: TransactionCategory[] | undefined;
 }

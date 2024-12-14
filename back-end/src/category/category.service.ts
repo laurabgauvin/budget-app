@@ -43,7 +43,7 @@ export class CategoryService {
      * @param id
      */
     async getCategory(id: string): Promise<Category | null> {
-        return await this._categoryRepository.findOneBy({ category_id: id });
+        return await this._categoryRepository.findOneBy({ categoryId: id });
     }
 
     /**
@@ -57,7 +57,7 @@ export class CategoryService {
             category.name = createCategoryDto.name;
 
             const db = await this._categoryRepository.save(category);
-            return db.category_id;
+            return db.categoryId;
         } catch {
             return null;
         }
@@ -93,9 +93,6 @@ export class CategoryService {
      * @param category
      */
     private _mapCategoryInfo(category: Category): CategoryInfoDto {
-        return {
-            categoryId: category.category_id,
-            name: category.name,
-        };
+        return category;
     }
 }

@@ -8,6 +8,7 @@ import { Budget } from './budget/entities/budget.entity';
 import { CategoryModule } from './category/category.module';
 import { BudgetMonthCategory } from './category/entities/budget-month-category.entity';
 import { Category } from './category/entities/category.entity';
+import { TransactionCategory } from './category/entities/transaction-category.entity';
 import { Payee } from './payee/entities/payee.entity';
 import { PayeeModule } from './payee/payee.module';
 import { Tag } from './tags/entities/tag.entity';
@@ -35,6 +36,7 @@ import { TransactionsModule } from './transactions/transactions.module';
                 Payee,
                 Tag,
                 Transaction,
+                TransactionCategory,
                 TransactionTag,
             ],
             // PROD: synchronize true should not be used in prod

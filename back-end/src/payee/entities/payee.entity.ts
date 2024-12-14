@@ -5,9 +5,10 @@ import { Transaction } from '../../transactions/entities/transaction.entity';
 @Entity()
 export class Payee {
     @PrimaryGeneratedColumn('uuid', {
+        name: 'payee_id',
         primaryKeyConstraintName: 'payee_pkey',
     })
-    payee_id!: string;
+    payeeId!: string;
 
     @Column('text', {
         nullable: true,
@@ -23,10 +24,10 @@ export class Payee {
     })
     @JoinColumn({
         name: 'default_category_id',
-        referencedColumnName: 'category_id',
+        referencedColumnName: 'categoryId',
         foreignKeyConstraintName: 'payee_default_category_id_fkey',
     })
-    default_category: Category | undefined;
+    defaultCategory: Category | undefined;
 
     @OneToMany(() => Transaction, (transaction) => transaction.payee)
     transactions: Transaction[] | undefined;

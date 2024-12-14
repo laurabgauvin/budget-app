@@ -43,7 +43,7 @@ export class BudgetService {
      * @param id
      */
     async getBudget(id: string): Promise<Budget | null> {
-        return await this._budgetRepository.findOneBy({ budget_id: id });
+        return await this._budgetRepository.findOneBy({ budgetId: id });
     }
 
     /**
@@ -57,7 +57,7 @@ export class BudgetService {
             budget.name = createBudgetDto.name;
 
             const db = await this._budgetRepository.save(budget);
-            return db.budget_id;
+            return db.budgetId;
         } catch {
             return null;
         }
@@ -95,9 +95,6 @@ export class BudgetService {
      * @param budget
      */
     private _mapBudgetInfoDto(budget: Budget): BudgetInfoDto {
-        return {
-            budgetId: budget.budget_id,
-            name: budget.name,
-        };
+        return budget;
     }
 }

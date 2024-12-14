@@ -43,7 +43,7 @@ export class AccountService {
      * @param id
      */
     async getAccount(id: string): Promise<Account | null> {
-        return await this._accountRepository.findOneBy({ account_id: id });
+        return await this._accountRepository.findOneBy({ accountId: id });
     }
 
     /**
@@ -58,7 +58,7 @@ export class AccountService {
             account.balance = 0;
 
             const db = await this._accountRepository.save(account);
-            return db.account_id;
+            return db.accountId;
         } catch {
             return null;
         }
@@ -95,8 +95,7 @@ export class AccountService {
      */
     private _mapAccountInfo(account: Account): AccountInfoDto {
         return {
-            accountId: account.account_id,
-            name: account.name,
+            ...account,
             balance: account.balance ?? 0,
         };
     }

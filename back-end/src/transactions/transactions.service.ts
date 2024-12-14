@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { TransactionInfoDto } from './dto/transaction-info.dto';
+import {
+    TransactionCategoryInfoDto,
+    TransactionInfoDto,
+    TransactionTagInfoDto,
+} from './dto/transaction-info.dto';
 import { Transaction } from './entities/transaction.entity';
 
 @Injectable()
@@ -31,7 +35,7 @@ export class TransactionsService {
         const transactions = await this._transactionRepository.find({
             where: {
                 payee: {
-                    payee_id: payeeId,
+                    payeeId: payeeId,
                 },
             },
         });
@@ -50,7 +54,7 @@ export class TransactionsService {
         const transactions = await this._transactionRepository.find({
             where: {
                 account: {
-                    account_id: accountId,
+                    accountId: accountId,
                 },
             },
         });
@@ -74,11 +78,28 @@ export class TransactionsService {
     private _mapTransactionInfo(transaction: Transaction): TransactionInfoDto {
         return {
             ...transaction,
-            transactionId: transaction.transaction_id,
-            accountId: transaction.account.account_id,
-            payeeId: transaction.payee.payee_id,
-            totalAmount: transaction.total_amount ?? 0,
+            accountId: transaction.account.accountId,
+            payeeId: transaction.payee.payeeId,
+            totalAmount: transaction.totalAmount ?? 0,
             notes: transaction.notes ?? '',
+            tags:
+                transaction.transactionTags?.map(
+                    (tt): TransactionTagInfoDto => ({
+                        transactionTagId: tt.transactionTagId,
+                        tagId: tt.tag.tagId,
+                        tagName: tt.tag.name ?? '',
+                    })
+                ) ?? [],
+            categories:
+                transaction.transactionCategories?.map(
+                    (tc): TransactionCategoryInfoDto => ({
+                        transactionCategoryId: tc.transactionCategoryId,
+                        categoryId: tc.category.categoryId,
+                        categoryName: tc.category.name ?? '',
+                        amount: tc.amount ?? 0,
+                        notes: tc.notes ?? '',
+                    })
+                ) ?? [],
         };
     }
 }

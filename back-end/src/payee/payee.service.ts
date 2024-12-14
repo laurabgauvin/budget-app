@@ -45,7 +45,7 @@ export class PayeeService {
      * @param id
      */
     async getPayee(id: string): Promise<Payee | null> {
-        return await this._payeeRepository.findOneBy({ payee_id: id });
+        return await this._payeeRepository.findOneBy({ payeeId: id });
     }
 
     /**
@@ -62,12 +62,12 @@ export class PayeeService {
                     createPayeeDto.defaultCategoryId
                 );
                 if (category) {
-                    payee.default_category = category;
+                    payee.defaultCategory = category;
                 }
             }
 
             const db = await this._payeeRepository.save(payee);
-            return db.payee_id;
+            return db.payeeId;
         } catch {
             return null;
         }
@@ -88,7 +88,7 @@ export class PayeeService {
                         updatePayeeDto.defaultCategoryId
                     );
                     if (category) {
-                        payee.default_category = category;
+                        payee.defaultCategory = category;
                     }
                 }
 
@@ -112,9 +112,8 @@ export class PayeeService {
      */
     private _mapPayeeInfo(payee: Payee): PayeeInfoDto {
         return {
-            payeeId: payee.payee_id,
-            name: payee.name,
-            defaultCategoryId: payee.default_category?.category_id,
+            ...payee,
+            defaultCategoryId: payee.defaultCategory?.categoryId,
         };
     }
 }

@@ -7,34 +7,38 @@ import { Tag } from './tag.entity';
 export class TransactionTag {
     @PrimaryGeneratedColumn({
         type: 'integer',
+        name: 'transaction_tag_id',
         primaryKeyConstraintName: 'transaction_tag_pkey',
     })
-    transaction_tag_id!: number;
+    transactionTagId!: number;
 
     @Column('uuid', {
         name: 'transaction_id',
         nullable: false,
     })
-    @ManyToOne(() => Transaction, (transaction) => transaction.transaction_tags, {
+    @ManyToOne(() => Transaction, (transaction) => transaction.transactionTags, {
         cascade: true,
         onDelete: 'CASCADE',
     })
     @JoinColumn({
         name: 'transaction_id',
+        referencedColumnName: 'transactionId',
         foreignKeyConstraintName: 'transaction_tag_transaction_id_fkey',
     })
+    @Index('transaction_tag_transaction_id_idx')
     transaction!: Transaction;
 
     @Column('uuid', {
         name: 'tag_id',
         nullable: false,
     })
-    @ManyToOne(() => Tag, (tag) => tag.transaction_tags, {
+    @ManyToOne(() => Tag, (tag) => tag.transactionTags, {
         cascade: true,
         onDelete: 'CASCADE',
     })
     @JoinColumn({
         name: 'tag_id',
+        referencedColumnName: 'tagId',
         foreignKeyConstraintName: 'transaction_tag_tag_id_fkey',
     })
     tag!: Tag;

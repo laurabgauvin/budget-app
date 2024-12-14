@@ -4,9 +4,10 @@ import { TransactionTag } from './transaction-tag.entity';
 @Entity()
 export class Tag {
     @PrimaryGeneratedColumn('uuid', {
+        name: 'tag_id',
         primaryKeyConstraintName: 'tag_pkey',
     })
-    tag_id!: string;
+    tagId!: string;
 
     @Column('text', {
         nullable: true,
@@ -14,5 +15,5 @@ export class Tag {
     name: string | undefined;
 
     @OneToMany(() => TransactionTag, (transactionTag) => transactionTag.tag)
-    transaction_tags: TransactionTag[] | undefined;
+    transactionTags: TransactionTag[] | undefined;
 }
