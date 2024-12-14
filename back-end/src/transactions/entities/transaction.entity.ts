@@ -1,6 +1,7 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Account } from '../../account/entities/account.entity';
 import { Payee } from '../../payee/entities/payee.entity';
+import { TransactionTag } from '../../tags/entities/transaction-tag.entity';
 
 export enum TransactionStatus {
     New = 'new',
@@ -61,4 +62,7 @@ export class Transaction {
         nullable: false,
     })
     status!: TransactionStatus;
+
+    @OneToMany(() => TransactionTag, (transactionTag) => transactionTag.transaction)
+    transaction_tags: TransactionTag[] | undefined;
 }

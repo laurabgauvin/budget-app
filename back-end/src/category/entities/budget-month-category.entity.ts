@@ -5,9 +5,10 @@ import { Category } from './category.entity';
 @Entity()
 export class BudgetMonthCategory {
     @PrimaryGeneratedColumn({
+        type: 'integer',
         primaryKeyConstraintName: 'budget_month_category_pkey',
     })
-    budget_month_category_id!: string;
+    budget_month_category_id!: number;
 
     @Column('uuid', {
         name: 'budget_month_id',
@@ -21,13 +22,13 @@ export class BudgetMonthCategory {
         name: 'budget_month_id',
         foreignKeyConstraintName: 'budget_month_category_budget_month_id_fkey',
     })
-    budgetMonth!: BudgetMonth;
+    budget_month!: BudgetMonth;
 
     @Column('uuid', {
         name: 'category_id',
         nullable: false,
     })
-    @ManyToOne(() => Category, (category) => category.budgetMonths, {
+    @ManyToOne(() => Category, (category) => category.budget_months, {
         cascade: true,
         onDelete: 'CASCADE',
     })

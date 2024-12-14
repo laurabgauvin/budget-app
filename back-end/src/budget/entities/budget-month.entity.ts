@@ -39,6 +39,6 @@ export class BudgetMonth {
     })
     month: number | undefined;
 
-    @OneToMany(() => BudgetMonthCategory, (category) => category.budgetMonth)
+    @OneToMany(() => BudgetMonthCategory, (budgetMonthCategory) => budgetMonthCategory.budget_month)
     categories: BudgetMonthCategory[] | undefined;
 }

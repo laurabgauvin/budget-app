@@ -10,6 +10,9 @@ import { BudgetMonthCategory } from './category/entities/budget-month-category.e
 import { Category } from './category/entities/category.entity';
 import { Payee } from './payee/entities/payee.entity';
 import { PayeeModule } from './payee/payee.module';
+import { Tag } from './tags/entities/tag.entity';
+import { TransactionTag } from './tags/entities/transaction-tag.entity';
+import { TagsModule } from './tags/tags.module';
 import { Transaction } from './transactions/entities/transaction.entity';
 import { TransactionsModule } from './transactions/transactions.module';
 
@@ -30,7 +33,9 @@ import { TransactionsModule } from './transactions/transactions.module';
                 BudgetMonthCategory,
                 Category,
                 Payee,
+                Tag,
                 Transaction,
+                TransactionTag,
             ],
             // PROD: synchronize true should not be used in prod
             synchronize: true,
@@ -40,6 +45,7 @@ import { TransactionsModule } from './transactions/transactions.module';
         CategoryModule,
         PayeeModule,
         AccountModule,
+        TagsModule,
     ],
     controllers: [],
     providers: [],

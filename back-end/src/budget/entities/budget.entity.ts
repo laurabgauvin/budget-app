@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { BudgetMonth } from './budget-month.entity';
 
 @Entity()
@@ -13,4 +13,8 @@ export class Budget {
 
     @OneToMany(() => BudgetMonth, (month) => month.budget)
     months: BudgetMonth[] | undefined;
+
+    @DeleteDateColumn()
+    @Column('date', { nullable: true })
+    deleted_date: Date | undefined;
 }

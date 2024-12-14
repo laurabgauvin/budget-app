@@ -14,5 +14,5 @@ export class Category {
     name: string | undefined;
 
     @OneToMany(() => BudgetMonthCategory, (budgetMonth) => budgetMonth.category)
-    budgetMonths: BudgetMonthCategory[] | undefined;
+    budget_months: BudgetMonthCategory[] | undefined;
 }
