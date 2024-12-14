@@ -40,8 +40,8 @@ import { Budget } from './budget.entity';
                         .groupBy('tc2.category_id')
                         .addGroupBy('t.date'),
                 'tc1',
-                'bmc.category_id = tc1.category_id' +
-                    'and extract(year from tc1.date) = bm.year' +
+                'bmc.category_id = tc1.category_id ' +
+                    'and extract(year from tc1.date) = bm.year ' +
                     'and extract(month from tc1.date) = bm.month'
             )
             .groupBy('b.budget_id')

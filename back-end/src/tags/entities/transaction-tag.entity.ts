@@ -1,4 +1,4 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Transaction } from '../../transactions/entities/transaction.entity';
 import { Tag } from './tag.entity';
 
@@ -12,10 +12,6 @@ export class TransactionTag {
     })
     transactionTagId!: number;
 
-    @Column('uuid', {
-        name: 'transaction_id',
-        nullable: false,
-    })
     @ManyToOne(() => Transaction, (transaction) => transaction.transactionTags, {
         cascade: true,
         onDelete: 'CASCADE',
@@ -28,10 +24,6 @@ export class TransactionTag {
     @Index('transaction_tag_transaction_id_idx')
     transaction!: Transaction;
 
-    @Column('uuid', {
-        name: 'tag_id',
-        nullable: false,
-    })
     @ManyToOne(() => Tag, (tag) => tag.transactionTags, {
         cascade: true,
         onDelete: 'CASCADE',

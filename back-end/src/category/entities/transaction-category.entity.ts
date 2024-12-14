@@ -11,10 +11,6 @@ export class TransactionCategory {
     })
     transactionCategoryId!: number;
 
-    @Column('uuid', {
-        name: 'transaction_id',
-        nullable: false,
-    })
     @ManyToOne(() => Transaction, (transaction) => transaction.transactionCategories, {
         cascade: true,
         onDelete: 'CASCADE',
@@ -27,10 +23,6 @@ export class TransactionCategory {
     @Index('transaction_category_transaction_id_idx')
     transaction!: Transaction;
 
-    @Column('uuid', {
-        name: 'category_id',
-        nullable: false,
-    })
     @ManyToOne(() => Category, (category) => category.transactionCategories, {
         cascade: true,
         onDelete: 'RESTRICT',

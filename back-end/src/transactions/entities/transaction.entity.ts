@@ -31,10 +31,6 @@ export class Transaction {
     })
     date: Date | undefined;
 
-    @Column('uuid', {
-        name: 'account_id',
-        nullable: false,
-    })
     @ManyToOne(() => Account, (account) => account.transactions, {
         cascade: true,
         onDelete: 'RESTRICT',
@@ -46,10 +42,6 @@ export class Transaction {
     })
     account!: Account;
 
-    @Column('uuid', {
-        name: 'payee_id',
-        nullable: false,
-    })
     @ManyToOne(() => Payee, (payee) => payee.transactions, {
         cascade: true,
         onDelete: 'RESTRICT',

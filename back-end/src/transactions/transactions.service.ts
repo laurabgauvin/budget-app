@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { AccountService } from '../account/account.service';
+import { CategoryService } from '../category/category.service';
+import { TransactionCategory } from '../category/entities/transaction-category.entity';
+import { PayeeService } from '../payee/payee.service';
+import { TransactionTag } from '../tags/entities/transaction-tag.entity';
+import { TagsService } from '../tags/tags.service';
+import { CreateTransactionDto } from './dto/create-transaction.dto';
 import {
     TransactionCategoryInfoDto,
     TransactionInfoDto,
@@ -12,7 +19,15 @@ import { Transaction } from './entities/transaction.entity';
 export class TransactionsService {
     constructor(
         @InjectRepository(Transaction)
-        private _transactionRepository: Repository<Transaction>
+        private _transactionRepository: Repository<Transaction>,
+        @InjectRepository(TransactionCategory)
+        private _transactionCategoryRepository: Repository<TransactionCategory>,
+        @InjectRepository(TransactionTag)
+        private _transactionTagRepository: Repository<TransactionTag>,
+        private readonly _categoryService: CategoryService,
+        private readonly _payeeService: PayeeService,
+        private readonly _accountService: AccountService,
+        private readonly _tagService: TagsService
     ) {}
 
     /**
@@ -65,6 +80,66 @@ export class TransactionsService {
     }
 
     // TODO: when insert/update/delete transaction, add trigger to update account balance?
+
+    async createTransaction(transactionDto: CreateTransactionDto): Promise<string | null> {
+        try {
+            const account = await this._accountService.getAccount(transactionDto.accountId);
+            if (!account) {
+                return null;
+            }
+
+            const payee = await this._payeeService.getPayee(transactionDto.payeeId);
+            if (!payee) {
+                return null;
+            }
+
+            // Create transaction
+            const transaction = new Transaction();
+            transaction.date = transactionDto.date;
+            transaction.account = account;
+            transaction.payee = payee;
+            transaction.totalAmount = transactionDto.amount;
+            transaction.notes = transactionDto.notes;
+            transaction.status = transactionDto.status;
+            await this._transactionRepository.save(transaction);
+
+            // Assign categories
+            // TODO: call category service for this
+            const transactionCategories: TransactionCategory[] = [];
+            for (const c of transactionDto.categories) {
+                const category = await this._categoryService.getCategory(c.categoryId);
+                if (category) {
+                    const tranCat = new TransactionCategory();
+                    tranCat.transaction = transaction;
+                    tranCat.category = category;
+                    tranCat.notes = c.notes;
+                    tranCat.amount = c.amount;
+                    transactionCategories.push(tranCat);
+                }
+            }
+            await this._transactionCategoryRepository.save(transactionCategories);
+
+            // Assign tags
+            // TODO: call tag service for this
+            const transactionTags: TransactionTag[] = [];
+            if (transactionDto.tags) {
+                for (const t of transactionDto.tags) {
+                    const tag = await this._tagService.getTag(t);
+                    if (tag) {
+                        const tranTag = new TransactionTag();
+                        tranTag.transaction = transaction;
+                        tranTag.tag = tag;
+                        transactionTags.push(tranTag);
+                    }
+                }
+            }
+            await this._transactionTagRepository.save(transactionTags);
+
+            return transaction.transactionId;
+        } catch {
+            return null;
+        }
+    }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Private methods

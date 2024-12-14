@@ -19,10 +19,6 @@ export class BudgetMonth {
     })
     budgetMonthId!: number;
 
-    @Column('uuid', {
-        name: 'budget_id',
-        nullable: false,
-    })
     @ManyToOne(() => Budget, (budget) => budget.months, {
         cascade: true,
         onDelete: 'CASCADE',

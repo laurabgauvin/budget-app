@@ -7,7 +7,9 @@ export class CreateAccountDto {
     @IsNotEmpty()
     name!: string;
 
-    @ApiProperty()
+    @ApiProperty({
+        enum: AccountType,
+    })
     @IsNotEmpty()
     @IsEnum(AccountType)
     type!: AccountType;

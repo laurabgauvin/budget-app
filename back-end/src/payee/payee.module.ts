@@ -9,5 +9,6 @@ import { PayeeService } from './payee.service';
     imports: [TypeOrmModule.forFeature([Payee]), CategoryModule],
     providers: [PayeeService],
     controllers: [PayeeController],
+    exports: [PayeeService],
 })
 export class PayeeModule {}

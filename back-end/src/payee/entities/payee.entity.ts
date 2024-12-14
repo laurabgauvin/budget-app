@@ -15,10 +15,6 @@ export class Payee {
     })
     name: string | undefined;
 
-    @Column('uuid', {
-        name: 'default_category_id',
-        nullable: true,
-    })
     @ManyToOne(() => Category, {
         onDelete: 'SET NULL',
     })
