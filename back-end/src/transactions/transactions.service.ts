@@ -3,9 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AccountService } from '../account/account.service';
 import { CategoryService } from '../category/category.service';
-import { TransactionCategory } from '../category/entities/transaction-category.entity';
 import { PayeeService } from '../payee/payee.service';
-import { TransactionTag } from '../tags/entities/transaction-tag.entity';
+import { sortByDate } from '../shared/utilities';
 import { TagsService } from '../tags/tags.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import {
@@ -20,10 +19,6 @@ export class TransactionsService {
     constructor(
         @InjectRepository(Transaction)
         private _transactionRepository: Repository<Transaction>,
-        @InjectRepository(TransactionCategory)
-        private _transactionCategoryRepository: Repository<TransactionCategory>,
-        @InjectRepository(TransactionTag)
-        private _transactionTagRepository: Repository<TransactionTag>,
         private readonly _categoryService: CategoryService,
         private readonly _payeeService: PayeeService,
         private readonly _accountService: AccountService,
@@ -36,7 +31,9 @@ export class TransactionsService {
     async getAllTransactionInfos(): Promise<TransactionInfoDto[]> {
         const transactions = await this._transactionRepository.find();
         if (transactions.length > 0) {
-            return transactions.map((c) => this._mapTransactionInfo(c));
+            return transactions
+                .map((c) => this._mapTransactionInfo(c))
+                .sort((a, b) => sortByDate(a.date, b.date, 'desc'));
         }
         return [];
     }
@@ -55,7 +52,9 @@ export class TransactionsService {
             },
         });
         if (transactions.length > 0) {
-            return transactions.map((c) => this._mapTransactionInfo(c));
+            return transactions
+                .map((c) => this._mapTransactionInfo(c))
+                .sort((a, b) => sortByDate(a.date, b.date, 'desc'));
         }
         return [];
     }
@@ -74,13 +73,14 @@ export class TransactionsService {
             },
         });
         if (transactions.length > 0) {
-            return transactions.map((c) => this._mapTransactionInfo(c));
+            return transactions
+                .map((c) => this._mapTransactionInfo(c))
+                .sort((a, b) => sortByDate(a.date, b.date, 'desc'));
         }
         return [];
     }
 
     // TODO: when insert/update/delete transaction, add trigger to update account balance?
-
     async createTransaction(transactionDto: CreateTransactionDto): Promise<string | null> {
         try {
             const account = await this._accountService.getAccount(transactionDto.accountId);
@@ -104,36 +104,13 @@ export class TransactionsService {
             await this._transactionRepository.save(transaction);
 
             // Assign categories
-            // TODO: call category service for this
-            const transactionCategories: TransactionCategory[] = [];
-            for (const c of transactionDto.categories) {
-                const category = await this._categoryService.getCategory(c.categoryId);
-                if (category) {
-                    const tranCat = new TransactionCategory();
-                    tranCat.transaction = transaction;
-                    tranCat.category = category;
-                    tranCat.notes = c.notes;
-                    tranCat.amount = c.amount;
-                    transactionCategories.push(tranCat);
-                }
-            }
-            await this._transactionCategoryRepository.save(transactionCategories);
+            await this._categoryService.setTransactionCategories(
+                transactionDto.categories,
+                transaction
+            );
 
             // Assign tags
-            // TODO: call tag service for this
-            const transactionTags: TransactionTag[] = [];
-            if (transactionDto.tags) {
-                for (const t of transactionDto.tags) {
-                    const tag = await this._tagService.getTag(t);
-                    if (tag) {
-                        const tranTag = new TransactionTag();
-                        tranTag.transaction = transaction;
-                        tranTag.tag = tag;
-                        transactionTags.push(tranTag);
-                    }
-                }
-            }
-            await this._transactionTagRepository.save(transactionTags);
+            await this._tagService.setTransactionTags(transactionDto.tags, transaction);
 
             return transaction.transactionId;
         } catch {

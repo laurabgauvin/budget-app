@@ -1,16 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { TransactionCategoryDto } from '../transactions/dto/create-transaction.dto';
+import { Transaction } from '../transactions/entities/transaction.entity';
 import { CategoryInfoDto } from './dto/category-info.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
+import { TransactionCategory } from './entities/transaction-category.entity';
 
 @Injectable()
 export class CategoryService {
     constructor(
         @InjectRepository(Category)
-        private _categoryRepository: Repository<Category>
+        private _categoryRepository: Repository<Category>,
+        @InjectRepository(TransactionCategory)
+        private _transactionCategoryRepository: Repository<TransactionCategory>
     ) {}
 
     /**
@@ -81,6 +86,31 @@ export class CategoryService {
         } catch {
             return false;
         }
+    }
+
+    /**
+     * Set the transaction categories
+     *
+     * @param categories
+     * @param transaction
+     */
+    async setTransactionCategories(
+        categories: TransactionCategoryDto[],
+        transaction: Transaction
+    ): Promise<TransactionCategory[]> {
+        const transactionCategories: TransactionCategory[] = [];
+        for (const c of categories) {
+            const category = await this.getCategory(c.categoryId);
+            if (category) {
+                const tranCat = new TransactionCategory();
+                tranCat.transaction = transaction;
+                tranCat.category = category;
+                tranCat.notes = c.notes;
+                tranCat.amount = c.amount;
+                transactionCategories.push(tranCat);
+            }
+        }
+        return await this._transactionCategoryRepository.save(transactionCategories);
     }
 
     // -----------------------------------------------------------------------------------------------------
