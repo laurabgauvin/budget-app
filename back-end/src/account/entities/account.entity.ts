@@ -1,4 +1,11 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    Index,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Transaction } from '../../transactions/entities/transaction.entity';
 
 export enum AccountType {
@@ -13,7 +20,8 @@ export enum AccountType {
     Liability = 'liability',
 }
 
-@Entity()
+@Entity('account')
+@Index('account_account_id_tracked_idx', ['accountId', 'tracked'])
 export class Account {
     @PrimaryGeneratedColumn('uuid', {
         name: 'account_id',
@@ -48,6 +56,13 @@ export class Account {
         nullable: false,
     })
     tracked!: boolean;
+
+    @CreateDateColumn({
+        type: 'timestamptz',
+        name: 'created_date',
+        nullable: false,
+    })
+    createdDate!: Date;
 
     @OneToMany(() => Transaction, (transaction) => transaction.account)
     transactions: Transaction[] | undefined;

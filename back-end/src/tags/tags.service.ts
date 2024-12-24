@@ -35,16 +35,21 @@ export class TagsService {
     ): Promise<TransactionTag[]> {
         const transactionTags: TransactionTag[] = [];
         if (tags) {
-            for (const t of tags) {
-                const tag = await this.getTag(t);
-                if (tag) {
-                    const tranTag = new TransactionTag();
-                    tranTag.transaction = transaction;
-                    tranTag.tag = tag;
-                    transactionTags.push(tranTag);
+            try {
+                for (const t of tags) {
+                    const tag = await this.getTag(t);
+                    if (tag) {
+                        const tranTag = new TransactionTag();
+                        tranTag.transaction = transaction;
+                        tranTag.tag = tag;
+                        transactionTags.push(tranTag);
+                    }
                 }
+                return await this._transactionTagRepository.save(transactionTags);
+            } catch {
+                return [];
             }
         }
-        return await this._transactionTagRepository.save(transactionTags);
+        return [];
     }
 }

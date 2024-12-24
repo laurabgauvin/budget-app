@@ -1,5 +1,6 @@
 import {
     Column,
+    CreateDateColumn,
     Entity,
     Index,
     JoinColumn,
@@ -19,6 +20,7 @@ export enum TransactionStatus {
 
 @Entity()
 @Index('transaction_account_id_date_idx', ['account', 'date'])
+@Index('transaction_payee_id_date_idx', ['payee', 'date'])
 export class Transaction {
     @PrimaryGeneratedColumn('uuid', {
         name: 'transaction_id',
@@ -40,6 +42,7 @@ export class Transaction {
         referencedColumnName: 'accountId',
         foreignKeyConstraintName: 'transaction_account_id_fkey',
     })
+    @Index('transaction_account_id_idx')
     account!: Account;
 
     @ManyToOne(() => Payee, (payee) => payee.transactions, {
@@ -51,6 +54,7 @@ export class Transaction {
         referencedColumnName: 'payeeId',
         foreignKeyConstraintName: 'transaction_payee_id_fkey',
     })
+    @Index('transaction_payee_id_idx')
     payee!: Payee;
 
     @Column({
@@ -74,6 +78,13 @@ export class Transaction {
         nullable: false,
     })
     status!: TransactionStatus;
+
+    @CreateDateColumn({
+        type: 'timestamptz',
+        name: 'created_date',
+        nullable: false,
+    })
+    createdDate!: Date;
 
     @OneToMany(() => TransactionTag, (transactionTag) => transactionTag.transaction)
     transactionTags: TransactionTag[] | undefined;

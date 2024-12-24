@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AccountService } from '../account/account.service';
+import { Account } from '../account/entities/account.entity';
 import { CategoryService } from '../category/category.service';
 import { PayeeService } from '../payee/payee.service';
-import { sortByDate } from '../shared/utilities';
 import { TagsService } from '../tags/tags.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import {
@@ -29,11 +29,13 @@ export class TransactionsService {
      * Get all transactions `TransactionInfoDto`
      */
     async getAllTransactionInfos(): Promise<TransactionInfoDto[]> {
-        const transactions = await this._transactionRepository.find();
+        const transactions = await this._transactionRepository.find({
+            order: {
+                date: 'desc',
+            },
+        });
         if (transactions.length > 0) {
-            return transactions
-                .map((c) => this._mapTransactionInfo(c))
-                .sort((a, b) => sortByDate(a.date, b.date, 'desc'));
+            return transactions.map((c) => this._mapTransactionInfo(c));
         }
         return [];
     }
@@ -50,11 +52,12 @@ export class TransactionsService {
                     payeeId: payeeId,
                 },
             },
+            order: {
+                date: 'desc',
+            },
         });
         if (transactions.length > 0) {
-            return transactions
-                .map((c) => this._mapTransactionInfo(c))
-                .sort((a, b) => sortByDate(a.date, b.date, 'desc'));
+            return transactions.map((c) => this._mapTransactionInfo(c));
         }
         return [];
     }
@@ -71,16 +74,21 @@ export class TransactionsService {
                     accountId: accountId,
                 },
             },
+            order: {
+                date: 'desc',
+            },
         });
         if (transactions.length > 0) {
-            return transactions
-                .map((c) => this._mapTransactionInfo(c))
-                .sort((a, b) => sortByDate(a.date, b.date, 'desc'));
+            return transactions.map((c) => this._mapTransactionInfo(c));
         }
         return [];
     }
 
-    // TODO: when insert/update/delete transaction, add trigger to update account balance?
+    /**
+     * Create a new transaction
+     *
+     * @param transactionDto
+     */
     async createTransaction(transactionDto: CreateTransactionDto): Promise<string | null> {
         try {
             const account = await this._accountService.getAccount(transactionDto.accountId);
@@ -111,6 +119,9 @@ export class TransactionsService {
 
             // Assign tags
             await this._tagService.setTransactionTags(transactionDto.tags, transaction);
+
+            // Update account balance
+            await this._updateAccountBalance(account);
 
             return transaction.transactionId;
         } catch {
@@ -153,5 +164,22 @@ export class TransactionsService {
                     })
                 ) ?? [],
         };
+    }
+
+    /**
+     * Recalculate and update the account balance
+     *
+     * @param account
+     */
+    private async _updateAccountBalance(account: Account): Promise<void> {
+        // Get new balance
+        // @ts-expect-error columnName is valid
+        const balance = await this._transactionRepository.sum('totalAmount', {
+            account: {
+                accountId: account.accountId,
+            },
+        });
+
+        await this._accountService.setAccountBalance(account, balance ?? 0);
     }
 }

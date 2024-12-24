@@ -1,8 +1,16 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Category } from '../../category/entities/category.entity';
 import { Transaction } from '../../transactions/entities/transaction.entity';
 
-@Entity()
+@Entity('payee')
 export class Payee {
     @PrimaryGeneratedColumn('uuid', {
         name: 'payee_id',
@@ -24,6 +32,13 @@ export class Payee {
         foreignKeyConstraintName: 'payee_default_category_id_fkey',
     })
     defaultCategory: Category | undefined;
+
+    @CreateDateColumn({
+        type: 'timestamptz',
+        name: 'created_date',
+        nullable: false,
+    })
+    createdDate!: Date;
 
     @OneToMany(() => Transaction, (transaction) => transaction.payee)
     transactions: Transaction[] | undefined;

@@ -88,6 +88,21 @@ export class AccountService {
         }
     }
 
+    /**
+     * Set the account balance
+     *
+     * @param account
+     * @param balance
+     */
+    async setAccountBalance(account: Account, balance: number): Promise<Account | null> {
+        try {
+            account.balance = balance;
+            return await this._accountRepository.save(account);
+        } catch {
+            return null;
+        }
+    }
+
     // -----------------------------------------------------------------------------------------------------
     // @ Private methods
     // -----------------------------------------------------------------------------------------------------

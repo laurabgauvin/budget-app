@@ -1,8 +1,15 @@
-import { Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    CreateDateColumn,
+    Entity,
+    Index,
+    JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Transaction } from '../../transactions/entities/transaction.entity';
 import { Tag } from './tag.entity';
 
-@Entity()
+@Entity('transaction_tag')
 @Index('transaction_tag_transaction_id_tag_id_idx', ['transaction', 'tag'], { unique: true })
 export class TransactionTag {
     @PrimaryGeneratedColumn({
@@ -33,5 +40,13 @@ export class TransactionTag {
         referencedColumnName: 'tagId',
         foreignKeyConstraintName: 'transaction_tag_tag_id_fkey',
     })
+    @Index('transaction_tag_tag_id_idx')
     tag!: Tag;
+
+    @CreateDateColumn({
+        type: 'timestamptz',
+        name: 'created_date',
+        nullable: false,
+    })
+    createdDate!: Date;
 }

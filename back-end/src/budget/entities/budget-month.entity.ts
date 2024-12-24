@@ -1,5 +1,6 @@
 import {
     Column,
+    CreateDateColumn,
     Entity,
     Index,
     JoinColumn,
@@ -10,7 +11,7 @@ import {
 import { BudgetMonthCategory } from './budget-month-category.entity';
 import { Budget } from './budget.entity';
 
-@Entity()
+@Entity('budget_month')
 @Index('budget_month_budget_id_year_month_idx', ['budget', 'year', 'month'], { unique: true })
 export class BudgetMonth {
     @PrimaryGeneratedColumn('uuid', {
@@ -39,6 +40,13 @@ export class BudgetMonth {
         nullable: true,
     })
     month: number | undefined;
+
+    @CreateDateColumn({
+        type: 'timestamptz',
+        name: 'created_date',
+        nullable: false,
+    })
+    createdDate!: Date;
 
     @OneToMany(() => BudgetMonthCategory, (budgetMonthCategory) => budgetMonthCategory.budgetMonth)
     categories: BudgetMonthCategory[] | undefined;

@@ -1,8 +1,17 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    Index,
+    JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Transaction } from '../../transactions/entities/transaction.entity';
 import { Category } from './category.entity';
 
-@Entity()
+@Entity('transaction_category')
+@Index('transaction_category_transaction_id_category_id_idx', ['transaction', 'category'])
 export class TransactionCategory {
     @PrimaryGeneratedColumn({
         type: 'integer',
@@ -32,6 +41,7 @@ export class TransactionCategory {
         referencedColumnName: 'categoryId',
         foreignKeyConstraintName: 'transaction_category_category_id_fkey',
     })
+    @Index('transaction_category_category_id_idx')
     category!: Category;
 
     @Column({
@@ -46,4 +56,11 @@ export class TransactionCategory {
         nullable: true,
     })
     notes: string | undefined;
+
+    @CreateDateColumn({
+        type: 'timestamptz',
+        name: 'created_date',
+        nullable: false,
+    })
+    createdDate!: Date;
 }

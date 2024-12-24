@@ -1,7 +1,14 @@
-import { Column, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { BudgetMonth } from './budget-month.entity';
 
-@Entity()
+@Entity('budget')
 export class Budget {
     @PrimaryGeneratedColumn('uuid', {
         name: 'budget_id',
@@ -12,8 +19,15 @@ export class Budget {
     @Column('text', { nullable: true })
     name: string | undefined;
 
+    @CreateDateColumn({
+        type: 'timestamptz',
+        name: 'created_date',
+        nullable: false,
+    })
+    createdDate!: Date;
+
     @DeleteDateColumn({
-        type: 'timestamp with time zone',
+        type: 'timestamptz',
         name: 'deleted_date',
         nullable: true,
     })

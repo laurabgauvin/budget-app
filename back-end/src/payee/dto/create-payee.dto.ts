@@ -7,7 +7,7 @@ export class CreatePayeeDto {
     name!: string;
 
     @ApiProperty({
-        type: 'uuid',
+        type: 'string',
         required: false,
     })
     defaultCategoryId: string | undefined;

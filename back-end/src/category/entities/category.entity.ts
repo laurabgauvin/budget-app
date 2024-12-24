@@ -1,8 +1,8 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { BudgetMonthCategory } from '../../budget/entities/budget-month-category.entity';
 import { TransactionCategory } from './transaction-category.entity';
 
-@Entity()
+@Entity('category')
 export class Category {
     @PrimaryGeneratedColumn('uuid', {
         name: 'category_id',
@@ -14,6 +14,13 @@ export class Category {
         nullable: true,
     })
     name: string | undefined;
+
+    @CreateDateColumn({
+        type: 'timestamptz',
+        name: 'created_date',
+        nullable: false,
+    })
+    createdDate!: Date;
 
     @OneToMany(() => BudgetMonthCategory, (budgetMonth) => budgetMonth.category)
     budgetMonths: BudgetMonthCategory[] | undefined;

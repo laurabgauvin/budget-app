@@ -1,8 +1,16 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    Index,
+    JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Category } from '../../category/entities/category.entity';
 import { BudgetMonth } from './budget-month.entity';
 
-@Entity()
+@Entity('budget_month_category')
 @Index('budget_month_category_budget_month_id_category_id_idx', ['budgetMonth', 'category'], {
     unique: true,
 })
@@ -44,4 +52,11 @@ export class BudgetMonthCategory {
         nullable: true,
     })
     amountBudgeted: number | undefined;
+
+    @CreateDateColumn({
+        type: 'timestamptz',
+        name: 'created_date',
+        nullable: false,
+    })
+    createdDate!: Date;
 }

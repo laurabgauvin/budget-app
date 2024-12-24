@@ -99,18 +99,22 @@ export class CategoryService {
         transaction: Transaction
     ): Promise<TransactionCategory[]> {
         const transactionCategories: TransactionCategory[] = [];
-        for (const c of categories) {
-            const category = await this.getCategory(c.categoryId);
-            if (category) {
-                const tranCat = new TransactionCategory();
-                tranCat.transaction = transaction;
-                tranCat.category = category;
-                tranCat.notes = c.notes;
-                tranCat.amount = c.amount;
-                transactionCategories.push(tranCat);
+        try {
+            for (const c of categories) {
+                const category = await this.getCategory(c.categoryId);
+                if (category) {
+                    const tranCat = new TransactionCategory();
+                    tranCat.transaction = transaction;
+                    tranCat.category = category;
+                    tranCat.notes = c.notes;
+                    tranCat.amount = c.amount;
+                    transactionCategories.push(tranCat);
+                }
             }
+            return await this._transactionCategoryRepository.save(transactionCategories);
+        } catch {
+            return [];
         }
-        return await this._transactionCategoryRepository.save(transactionCategories);
     }
 
     // -----------------------------------------------------------------------------------------------------
