@@ -5,7 +5,6 @@ import { MatIcon } from '@angular/material/icon';
     selector: 'app-header',
     templateUrl: './header.component.html',
     styleUrl: './header.component.scss',
-    standalone: true,
-    imports: [MatIcon],
+    imports: [MatIcon]
 })
 export class HeaderComponent {}
