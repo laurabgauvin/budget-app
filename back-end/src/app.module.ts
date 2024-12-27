@@ -12,9 +12,9 @@ import { Category } from './category/entities/category.entity';
 import { TransactionCategory } from './category/entities/transaction-category.entity';
 import { Payee } from './payee/entities/payee.entity';
 import { PayeeModule } from './payee/payee.module';
-import { Tag } from './tags/entities/tag.entity';
-import { TransactionTag } from './tags/entities/transaction-tag.entity';
-import { TagsModule } from './tags/tags.module';
+import { Tag } from './tag/entities/tag.entity';
+import { TransactionTag } from './tag/entities/transaction-tag.entity';
+import { TagModule } from './tag/tag.module';
 import { Transaction } from './transactions/entities/transaction.entity';
 import { TransactionSubscriber } from './transactions/entities/transaction.subscriber';
 import { TransactionsModule } from './transactions/transactions.module';
@@ -42,6 +42,7 @@ import { TransactionsModule } from './transactions/transactions.module';
                 TransactionCategory,
                 TransactionTag,
             ],
+            // TODO: add `namingStrategy`
             subscribers: [TransactionSubscriber],
             // PROD: synchronize true should not be used in prod
             synchronize: true,
@@ -51,7 +52,7 @@ import { TransactionsModule } from './transactions/transactions.module';
         CategoryModule,
         PayeeModule,
         AccountModule,
-        TagsModule,
+        TagModule,
     ],
     controllers: [],
     providers: [],

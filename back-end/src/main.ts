@@ -18,7 +18,7 @@ async function bootstrap() {
         .addTag('Budget')
         .addTag('Category')
         .addTag('Payee')
-        .addTag('Tags')
+        .addTag('Tag')
         .addTag('Transactions')
         .setVersion('0.0.8')
         .build();

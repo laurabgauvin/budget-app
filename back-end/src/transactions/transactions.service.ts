@@ -4,7 +4,7 @@ import { FindOptionsRelations, Repository } from 'typeorm';
 import { AccountService } from '../account/account.service';
 import { CategoryService } from '../category/category.service';
 import { PayeeService } from '../payee/payee.service';
-import { TagsService } from '../tags/tags.service';
+import { TagService } from '../tag/tag.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import {
     TransactionCategoryInfoDto,
@@ -34,7 +34,7 @@ export class TransactionsService {
         private readonly _categoryService: CategoryService,
         private readonly _payeeService: PayeeService,
         private readonly _accountService: AccountService,
-        private readonly _tagService: TagsService
+        private readonly _tagService: TagService
     ) {}
 
     /**

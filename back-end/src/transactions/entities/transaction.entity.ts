@@ -11,7 +11,7 @@ import {
 import { Account } from '../../account/entities/account.entity';
 import { TransactionCategory } from '../../category/entities/transaction-category.entity';
 import { Payee } from '../../payee/entities/payee.entity';
-import { TransactionTag } from '../../tags/entities/transaction-tag.entity';
+import { TransactionTag } from '../../tag/entities/transaction-tag.entity';
 
 export enum TransactionStatus {
     Pending = 'pending',

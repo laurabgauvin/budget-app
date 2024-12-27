@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AccountModule } from '../account/account.module';
 import { CategoryModule } from '../category/category.module';
 import { PayeeModule } from '../payee/payee.module';
-import { TagsModule } from '../tags/tags.module';
+import { TagModule } from '../tag/tag.module';
 import { Transaction } from './entities/transaction.entity';
 import { TransactionsController } from './transactions.controller';
 import { TransactionsService } from './transactions.service';
@@ -14,7 +14,7 @@ import { TransactionsService } from './transactions.service';
         AccountModule,
         CategoryModule,
         PayeeModule,
-        TagsModule,
+        TagModule,
     ],
     providers: [TransactionsService],
     controllers: [TransactionsController],
