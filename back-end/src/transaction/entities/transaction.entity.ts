@@ -4,6 +4,8 @@ import {
     Entity,
     Index,
     JoinColumn,
+    JoinTable,
+    ManyToMany,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -11,7 +13,7 @@ import {
 import { Account } from '../../account/entities/account.entity';
 import { TransactionCategory } from '../../category/entities/transaction-category.entity';
 import { Payee } from '../../payee/entities/payee.entity';
-import { TransactionTag } from '../../tag/entities/transaction-tag.entity';
+import { Tag } from '../../tag/entities/tag.entity';
 
 export enum TransactionStatus {
     Pending = 'pending',
@@ -19,13 +21,10 @@ export enum TransactionStatus {
 }
 
 @Entity()
-@Index('transaction_account_id_date_idx', ['account', 'date'])
-@Index('transaction_payee_id_date_idx', ['payee', 'date'])
+@Index(['account', 'date'])
+@Index(['payee', 'date'])
 export class Transaction {
-    @PrimaryGeneratedColumn('uuid', {
-        name: 'transaction_id',
-        primaryKeyConstraintName: 'transaction_pkey',
-    })
+    @PrimaryGeneratedColumn('uuid')
     transactionId!: string;
 
     @Column('date', {
@@ -37,29 +36,20 @@ export class Transaction {
         cascade: true,
         onDelete: 'RESTRICT',
     })
-    @JoinColumn({
-        name: 'account_id',
-        referencedColumnName: 'accountId',
-        foreignKeyConstraintName: 'transaction_account_id_fkey',
-    })
-    @Index('transaction_account_id_idx')
+    @JoinColumn()
+    @Index()
     account!: Account;
 
     @ManyToOne(() => Payee, (payee) => payee.transactions, {
         cascade: true,
         onDelete: 'RESTRICT',
     })
-    @JoinColumn({
-        name: 'payee_id',
-        referencedColumnName: 'payeeId',
-        foreignKeyConstraintName: 'transaction_payee_id_fkey',
-    })
-    @Index('transaction_payee_id_idx')
+    @JoinColumn()
+    @Index()
     payee!: Payee;
 
     @Column({
         type: 'numeric',
-        name: 'total_amount',
         precision: 15,
         scale: 2,
         nullable: true,
@@ -81,13 +71,16 @@ export class Transaction {
 
     @CreateDateColumn({
         type: 'timestamptz',
-        name: 'created_date',
         nullable: false,
     })
     createdDate!: Date;
 
-    @OneToMany(() => TransactionTag, (transactionTag) => transactionTag.transaction)
-    transactionTags: TransactionTag[] | undefined;
+    @ManyToMany(() => Tag, (tag) => tag.transactions, {
+        cascade: true,
+        onDelete: 'CASCADE',
+    })
+    @JoinTable()
+    tags: Tag[] | undefined;
 
     @OneToMany(() => TransactionCategory, (transactionCategory) => transactionCategory.transaction)
     transactionCategories: TransactionCategory[] | undefined;

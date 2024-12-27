@@ -1,12 +1,9 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { TransactionTag } from './transaction-tag.entity';
+import { Column, CreateDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Transaction } from '../../transaction/entities/transaction.entity';
 
-@Entity('tag')
+@Entity()
 export class Tag {
-    @PrimaryGeneratedColumn('uuid', {
-        name: 'tag_id',
-        primaryKeyConstraintName: 'tag_pkey',
-    })
+    @PrimaryGeneratedColumn('uuid')
     tagId!: string;
 
     @Column('text', {
@@ -16,11 +13,10 @@ export class Tag {
 
     @CreateDateColumn({
         type: 'timestamptz',
-        name: 'created_date',
         nullable: false,
     })
     createdDate!: Date;
 
-    @OneToMany(() => TransactionTag, (transactionTag) => transactionTag.tag)
-    transactionTags: TransactionTag[] | undefined;
+    @ManyToMany(() => Transaction, (t) => t.tags)
+    transactions: Transaction[] | undefined;
 }

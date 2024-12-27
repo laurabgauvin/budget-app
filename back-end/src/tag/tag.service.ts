@@ -6,7 +6,6 @@ import { CreateTagDto } from './dto/create-tag.dto';
 import { TagInfoDto } from './dto/tag-info.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { Tag } from './entities/tag.entity';
-import { TransactionTag } from './entities/transaction-tag.entity';
 
 @Injectable()
 export class TagService {
@@ -14,9 +13,7 @@ export class TagService {
 
     constructor(
         @InjectRepository(Tag)
-        private _tagRepository: Repository<Tag>,
-        @InjectRepository(TransactionTag)
-        private _transactionTagRepository: Repository<TransactionTag>
+        private _tagRepository: Repository<Tag>
     ) {}
 
     /**
@@ -119,14 +116,16 @@ export class TagService {
     async createTransactionTags(
         tagIds: string[] | undefined,
         transaction: Transaction
-    ): Promise<TransactionTag[]> {
-        try {
+    ): Promise<Tag[]> {
+        // TODO: fix
+        return [];
+        /*try {
             if (tagIds) {
-                const transactionTags: TransactionTag[] = [];
+                const transactionTags: Tag[] = [];
                 for (const t of tagIds) {
                     const tag = await this.getTag(t);
                     if (tag) {
-                        const tranTag = new TransactionTag();
+                        const tranTag = new Tag();
                         tranTag.transaction = transaction;
                         tranTag.tag = tag;
                         transactionTags.push(tranTag);
@@ -138,7 +137,7 @@ export class TagService {
         } catch (e) {
             this.logger.error('Exception when creating transaction tags:', e);
             return [];
-        }
+        }*/
     }
 
     /**
@@ -150,8 +149,10 @@ export class TagService {
     async updateTransactionTags(
         tagIds: string[] | undefined,
         transaction: Transaction
-    ): Promise<TransactionTag[]> {
-        try {
+    ): Promise<Tag[]> {
+        // TODO: fix
+        return [];
+        /*try {
             const existingTransactionTags = await this._transactionTagRepository.find({
                 where: {
                     transaction: {
@@ -162,7 +163,7 @@ export class TagService {
             });
 
             if (tagIds && tagIds.length > 0) {
-                let update = false;
+                const update = false;
 
                 // Delete removed tags
                 const removedTags = existingTransactionTags.filter(
@@ -199,7 +200,7 @@ export class TagService {
         } catch (e) {
             this.logger.error('Exception when updating transaction tags:', e);
             return [];
-        }
+        }*/
     }
 
     // -----------------------------------------------------------------------------------------------------

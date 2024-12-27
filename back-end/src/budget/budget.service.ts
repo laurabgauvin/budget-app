@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BudgetInfoDto } from './dto/budget-info.dto';
@@ -12,6 +12,8 @@ import { BudgetView } from './entities/budget.view';
 
 @Injectable()
 export class BudgetService {
+    private readonly logger = new Logger(BudgetService.name);
+
     constructor(
         @InjectRepository(Budget)
         private _budgetRepository: Repository<Budget>,
@@ -27,11 +29,16 @@ export class BudgetService {
      * Get all the budgets `BudgetInfoDto`
      */
     async getAllBudgetInfos(): Promise<BudgetInfoDto[]> {
-        const budgets = await this._budgetRepository.find();
-        if (budgets.length > 0) {
-            return budgets.map((b) => this._mapBudgetInfoDto(b));
+        try {
+            const budgets = await this._budgetRepository.find();
+            if (budgets.length > 0) {
+                return budgets.map((b) => this._mapBudgetInfoDto(b));
+            }
+            return [];
+        } catch (e) {
+            this.logger.error('Exception when getting all budgets:', e);
+            return [];
         }
-        return [];
     }
 
     /**
@@ -40,11 +47,16 @@ export class BudgetService {
      * @param id
      */
     async getBudgetInfo(id: string): Promise<BudgetInfoDto | null> {
-        const budget = await this.getBudget(id);
-        if (budget) {
-            return this._mapBudgetInfoDto(budget);
+        try {
+            const budget = await this.getBudget(id);
+            if (budget) {
+                return this._mapBudgetInfoDto(budget);
+            }
+            return null;
+        } catch (e) {
+            this.logger.error('Exception when getting budget:', e);
+            return null;
         }
-        return null;
     }
 
     /**
@@ -59,23 +71,28 @@ export class BudgetService {
         year: number,
         month: number
     ): Promise<BudgetMonthCategoryDataDto[] | []> {
-        const budgetView = await this._budgetViewRepository.findBy({
-            budgetId: id,
-            year: year,
-            month: month,
-        });
-        if (budgetView) {
-            return budgetView.map(
-                (bv): BudgetMonthCategoryDataDto => ({
-                    ...bv,
-                    categoryName: bv.categoryName ?? '',
-                    amountBudgeted: bv.amountBudgeted ?? 0,
-                    amountSpent: bv.amountSpent ?? 0,
-                    amountAvailable: bv.amountAvailable ?? 0,
-                })
-            );
+        try {
+            const budgetView = await this._budgetViewRepository.findBy({
+                budgetId: id,
+                year: year,
+                month: month,
+            });
+            if (budgetView) {
+                return budgetView.map(
+                    (bv): BudgetMonthCategoryDataDto => ({
+                        ...bv,
+                        categoryName: bv.categoryName ?? '',
+                        amountBudgeted: bv.amountBudgeted ?? 0,
+                        amountSpent: bv.amountSpent ?? 0,
+                        amountAvailable: bv.amountAvailable ?? 0,
+                    })
+                );
+            }
+            return [];
+        } catch (e) {
+            this.logger.error('Exception when getting budget month:', e);
+            return [];
         }
-        return [];
     }
 
     /**
@@ -84,7 +101,12 @@ export class BudgetService {
      * @param id
      */
     async getBudget(id: string): Promise<Budget | null> {
-        return await this._budgetRepository.findOneBy({ budgetId: id });
+        try {
+            return await this._budgetRepository.findOneBy({ budgetId: id });
+        } catch (e) {
+            this.logger.error('Exception when getting budget:', e);
+            return null;
+        }
     }
 
     /**
@@ -99,7 +121,8 @@ export class BudgetService {
 
             const db = await this._budgetRepository.save(budget);
             return db.budgetId;
-        } catch {
+        } catch (e) {
+            this.logger.error('Exception when creating budget:', e);
             return null;
         }
     }
@@ -119,7 +142,8 @@ export class BudgetService {
                 return true;
             }
             return false;
-        } catch {
+        } catch (e) {
+            this.logger.error('Exception when updating budget:', e);
             return false;
         }
     }
@@ -137,7 +161,8 @@ export class BudgetService {
                 return true;
             }
             return true;
-        } catch {
+        } catch (e) {
+            this.logger.error('Exception when deleting budget:', e);
             return false;
         }
     }

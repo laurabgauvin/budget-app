@@ -21,13 +21,10 @@ export enum AccountType {
     Liability = 'liability',
 }
 
-@Entity('account')
-@Index('account_account_id_tracked_idx', ['accountId', 'tracked'])
+@Entity()
+@Index(['accountId', 'tracked'])
 export class Account {
-    @PrimaryGeneratedColumn('uuid', {
-        name: 'account_id',
-        primaryKeyConstraintName: 'account_pkey',
-    })
+    @PrimaryGeneratedColumn('uuid')
     accountId!: string;
 
     @Column('text', {
@@ -60,14 +57,12 @@ export class Account {
 
     @CreateDateColumn({
         type: 'timestamptz',
-        name: 'created_date',
         nullable: false,
     })
     createdDate!: Date;
 
     @DeleteDateColumn({
         type: 'timestamptz',
-        name: 'deleted_date',
         nullable: true,
     })
     deletedDate: Date | undefined;

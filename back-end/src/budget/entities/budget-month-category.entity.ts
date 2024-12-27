@@ -10,15 +10,13 @@ import {
 import { Category } from '../../category/entities/category.entity';
 import { BudgetMonth } from './budget-month.entity';
 
-@Entity('budget_month_category')
-@Index('budget_month_category_budget_month_id_category_id_idx', ['budgetMonth', 'category'], {
+@Entity()
+@Index(['budgetMonth', 'category'], {
     unique: true,
 })
 export class BudgetMonthCategory {
     @PrimaryGeneratedColumn({
         type: 'integer',
-        name: 'budget_month_category_id',
-        primaryKeyConstraintName: 'budget_month_category_pkey',
     })
     budgetMonthCategoryId!: number;
 
@@ -26,27 +24,18 @@ export class BudgetMonthCategory {
         cascade: true,
         onDelete: 'CASCADE',
     })
-    @JoinColumn({
-        name: 'budget_month_id',
-        referencedColumnName: 'budgetMonthId',
-        foreignKeyConstraintName: 'budget_month_category_budget_month_id_fkey',
-    })
+    @JoinColumn()
     budgetMonth!: BudgetMonth;
 
     @ManyToOne(() => Category, (category) => category.budgetMonths, {
         cascade: true,
         onDelete: 'CASCADE',
     })
-    @JoinColumn({
-        name: 'category_id',
-        referencedColumnName: 'categoryId',
-        foreignKeyConstraintName: 'budget_month_category_category_id_fkey',
-    })
+    @JoinColumn()
     category!: Category;
 
     @Column({
         type: 'numeric',
-        name: 'amount_budgeted',
         precision: 15,
         scale: 2,
         nullable: true,
@@ -55,7 +44,6 @@ export class BudgetMonthCategory {
 
     @CreateDateColumn({
         type: 'timestamptz',
-        name: 'created_date',
         nullable: false,
     })
     createdDate!: Date;

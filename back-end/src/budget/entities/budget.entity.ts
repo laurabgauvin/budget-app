@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { BudgetMonth } from './budget-month.entity';
 
-@Entity('budget')
+@Entity()
 export class Budget {
     @PrimaryGeneratedColumn('uuid', {
         name: 'budget_id',

@@ -2,12 +2,9 @@ import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } f
 import { BudgetMonthCategory } from '../../budget/entities/budget-month-category.entity';
 import { TransactionCategory } from './transaction-category.entity';
 
-@Entity('category')
+@Entity()
 export class Category {
-    @PrimaryGeneratedColumn('uuid', {
-        name: 'category_id',
-        primaryKeyConstraintName: 'category_pkey',
-    })
+    @PrimaryGeneratedColumn('uuid')
     categoryId!: string;
 
     @Column('text', {
@@ -17,7 +14,6 @@ export class Category {
 
     @CreateDateColumn({
         type: 'timestamptz',
-        name: 'created_date',
         nullable: false,
     })
     createdDate!: Date;

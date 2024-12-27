@@ -10,12 +10,9 @@ import {
 import { Category } from '../../category/entities/category.entity';
 import { Transaction } from '../../transaction/entities/transaction.entity';
 
-@Entity('payee')
+@Entity()
 export class Payee {
-    @PrimaryGeneratedColumn('uuid', {
-        name: 'payee_id',
-        primaryKeyConstraintName: 'payee_pkey',
-    })
+    @PrimaryGeneratedColumn('uuid')
     payeeId!: string;
 
     @Column('text', {
@@ -26,16 +23,11 @@ export class Payee {
     @ManyToOne(() => Category, {
         onDelete: 'SET NULL',
     })
-    @JoinColumn({
-        name: 'default_category_id',
-        referencedColumnName: 'categoryId',
-        foreignKeyConstraintName: 'payee_default_category_id_fkey',
-    })
+    @JoinColumn()
     defaultCategory: Category | undefined;
 
     @CreateDateColumn({
         type: 'timestamptz',
-        name: 'created_date',
         nullable: false,
     })
     createdDate!: Date;

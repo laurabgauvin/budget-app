@@ -22,5 +22,6 @@ module.exports = tseslint.config({
         '@typescript-eslint/restrict-template-expressions': 'off',
         // TODO: change to warn, disable auto-fix (`transaction.service.ts`)
         '@typescript-eslint/no-unnecessary-condition': 'off',
+        '@typescript-eslint/no-unused-vars': 'warn',
     },
 });

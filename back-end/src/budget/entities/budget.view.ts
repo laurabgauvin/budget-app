@@ -58,14 +58,10 @@ import { Budget } from './budget.entity';
             .addOrderBy('bmc.category_id'),
 })
 export class BudgetView {
-    @ViewColumn({
-        name: 'budget_id',
-    })
+    @ViewColumn()
     budgetId!: string;
 
-    @ViewColumn({
-        name: 'budget_month_id',
-    })
+    @ViewColumn()
     budgetMonthId!: string;
 
     @ViewColumn()
@@ -74,33 +70,21 @@ export class BudgetView {
     @ViewColumn()
     month: number | undefined;
 
-    @ViewColumn({
-        name: 'category_id',
-    })
+    @ViewColumn()
     categoryId!: string;
 
-    @ViewColumn({
-        name: 'category_name',
-    })
+    @ViewColumn()
     categoryName: string | undefined;
 
-    @ViewColumn({
-        name: 'budget_month_category_id',
-    })
+    @ViewColumn()
     budgetMonthCategoryId!: number;
 
-    @ViewColumn({
-        name: 'amount_budgeted',
-    })
+    @ViewColumn()
     amountBudgeted: number | undefined;
 
-    @ViewColumn({
-        name: 'amount_spent',
-    })
+    @ViewColumn()
     amountSpent: number | undefined;
 
-    @ViewColumn({
-        name: 'amount_available',
-    })
+    @ViewColumn()
     amountAvailable: number | undefined;
 }

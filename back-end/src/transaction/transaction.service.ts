@@ -6,11 +6,7 @@ import { CategoryService } from '../category/category.service';
 import { PayeeService } from '../payee/payee.service';
 import { TagService } from '../tag/tag.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
-import {
-    TransactionCategoryInfoDto,
-    TransactionInfoDto,
-    TransactionTagInfoDto,
-} from './dto/transaction-info.dto';
+import { TransactionCategoryInfoDto, TransactionInfoDto } from './dto/transaction-info.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { Transaction } from './entities/transaction.entity';
 
@@ -20,9 +16,9 @@ export class TransactionService {
     private readonly loadTransactionAllRelations: FindOptionsRelations<Transaction> = {
         account: true,
         payee: true,
-        transactionTags: {
+        /*transactionTags: {
             tag: true,
-        },
+        },*/
         transactionCategories: {
             category: true,
         },
@@ -322,13 +318,12 @@ export class TransactionService {
             totalAmount: transaction.totalAmount ?? 0,
             notes: transaction.notes ?? '',
             status: transaction.status,
-            tags:
-                transaction.transactionTags?.map(
+            tags: /*transaction.transactionTags?.map(
                     (tt): TransactionTagInfoDto => ({
                         tagId: tt.tag.tagId,
                         tagName: tt.tag.name ?? '',
                     })
-                ) ?? [],
+                ) ?? */ [],
             categories:
                 transaction.transactionCategories?.map(
                     (tc): TransactionCategoryInfoDto => ({
