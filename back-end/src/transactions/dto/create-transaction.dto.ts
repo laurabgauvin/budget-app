@@ -1,49 +1,46 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsUUID } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsDateString, IsEnum, IsNumber, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { TransactionStatus } from '../entities/transaction.entity';
 
 export class TransactionCategoryDto {
     @ApiProperty()
-    @IsNotEmpty()
     @IsUUID()
     categoryId!: string;
 
     @ApiProperty({
         type: 'number',
     })
-    @IsNotEmpty()
     @IsNumber({
         maxDecimalPlaces: 2,
     })
     amount!: number;
 
-    @ApiProperty({
-        type: 'string',
-        required: false,
-    })
-    notes: string | undefined;
+    @ApiProperty()
+    @IsString()
+    notes!: string;
+
+    @ApiProperty()
+    @IsNumber()
+    order!: number;
 }
 
 export class CreateTransactionDto {
     @ApiProperty()
-    @IsNotEmpty()
-    @IsDateString()
+    @IsDateString({ strict: true })
     date!: Date;
 
     @ApiProperty()
-    @IsNotEmpty()
     @IsUUID()
     accountId!: string;
 
     @ApiProperty()
-    @IsNotEmpty()
     @IsUUID()
     payeeId!: string;
 
     @ApiProperty({
         type: 'number',
     })
-    @IsNotEmpty()
     @IsNumber({
         maxDecimalPlaces: 2,
     })
@@ -58,7 +55,6 @@ export class CreateTransactionDto {
     @ApiProperty({
         enum: TransactionStatus,
     })
-    @IsNotEmpty()
     @IsEnum(TransactionStatus)
     status!: TransactionStatus;
 
@@ -66,13 +62,14 @@ export class CreateTransactionDto {
         type: TransactionCategoryDto,
         isArray: true,
     })
-    @IsNotEmpty()
+    @ValidateNested()
+    @Type(() => TransactionCategoryDto)
     categories!: TransactionCategoryDto[];
 
     @ApiProperty({
         type: 'string',
-        required: false,
         isArray: true,
     })
-    tags: string[] | undefined;
+    @IsUUID('all', { each: true })
+    tags!: string[];
 }

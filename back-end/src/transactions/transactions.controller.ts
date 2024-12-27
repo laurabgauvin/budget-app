@@ -15,7 +15,7 @@ export class TransactionsController {
     }
 
     @Put()
-    updateTransaction(@Body() dto: UpdateTransactionDto): Promise<boolean> | null {
-        return null;
+    updateTransaction(@Body() dto: UpdateTransactionDto): Promise<boolean> {
+        return this._transactionService.updateTransaction(dto);
     }
 }

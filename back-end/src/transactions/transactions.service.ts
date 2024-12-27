@@ -1,8 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AccountService } from '../account/account.service';
-import { Account } from '../account/entities/account.entity';
 import { CategoryService } from '../category/category.service';
 import { PayeeService } from '../payee/payee.service';
 import { TagsService } from '../tags/tags.service';
@@ -12,10 +11,13 @@ import {
     TransactionInfoDto,
     TransactionTagInfoDto,
 } from './dto/transaction-info.dto';
+import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { Transaction } from './entities/transaction.entity';
 
 @Injectable()
 export class TransactionsService {
+    private readonly logger = new Logger(TransactionsService.name);
+
     constructor(
         @InjectRepository(Transaction)
         private _transactionRepository: Repository<Transaction>,
@@ -29,15 +31,20 @@ export class TransactionsService {
      * Get all transactions `TransactionInfoDto`
      */
     async getAllTransactionInfos(): Promise<TransactionInfoDto[]> {
-        const transactions = await this._transactionRepository.find({
-            order: {
-                date: 'desc',
-            },
-        });
-        if (transactions.length > 0) {
-            return transactions.map((c) => this._mapTransactionInfo(c));
+        try {
+            const transactions = await this._transactionRepository.find({
+                order: {
+                    date: 'desc',
+                },
+            });
+            if (transactions.length > 0) {
+                return transactions.map((c) => this._mapTransactionInfo(c));
+            }
+            return [];
+        } catch (e) {
+            this.logger.error('Exception when getting all transactions:', e);
+            return [];
         }
-        return [];
     }
 
     /**
@@ -46,20 +53,25 @@ export class TransactionsService {
      * @param payeeId
      */
     async getTransactionInfosByPayee(payeeId: string): Promise<TransactionInfoDto[]> {
-        const transactions = await this._transactionRepository.find({
-            where: {
-                payee: {
-                    payeeId: payeeId,
+        try {
+            const transactions = await this._transactionRepository.find({
+                where: {
+                    payee: {
+                        payeeId: payeeId,
+                    },
                 },
-            },
-            order: {
-                date: 'desc',
-            },
-        });
-        if (transactions.length > 0) {
-            return transactions.map((c) => this._mapTransactionInfo(c));
+                order: {
+                    date: 'desc',
+                },
+            });
+            if (transactions.length > 0) {
+                return transactions.map((c) => this._mapTransactionInfo(c));
+            }
+            return [];
+        } catch (e) {
+            this.logger.error('Exception when getting transactions by payee:', e);
+            return [];
         }
-        return [];
     }
 
     /**
@@ -68,20 +80,44 @@ export class TransactionsService {
      * @param accountId
      */
     async getTransactionInfosByAccount(accountId: string): Promise<TransactionInfoDto[]> {
-        const transactions = await this._transactionRepository.find({
-            where: {
-                account: {
-                    accountId: accountId,
+        try {
+            const transactions = await this._transactionRepository.find({
+                where: {
+                    account: {
+                        accountId: accountId,
+                    },
                 },
-            },
-            order: {
-                date: 'desc',
-            },
-        });
-        if (transactions.length > 0) {
-            return transactions.map((c) => this._mapTransactionInfo(c));
+                order: {
+                    date: 'desc',
+                },
+            });
+            if (transactions.length > 0) {
+                return transactions.map((c) => this._mapTransactionInfo(c));
+            }
+            return [];
+        } catch (e) {
+            this.logger.error('Exception when getting transactions by account:', e);
+            return [];
         }
-        return [];
+    }
+
+    /**
+     * Get a single transaction `Transaction`. Loads `Account` and `Payee` relations
+     *
+     * @param id
+     */
+    async getTransaction(id: string): Promise<Transaction | null> {
+        try {
+            return await this._transactionRepository.findOne({
+                where: {
+                    transactionId: id,
+                },
+                relations: ['account', 'payee'],
+            });
+        } catch (e) {
+            this.logger.error('Exception when getting transaction:', e);
+            return null;
+        }
     }
 
     /**
@@ -93,11 +129,22 @@ export class TransactionsService {
         try {
             const account = await this._accountService.getAccount(transactionDto.accountId);
             if (!account) {
+                this.logger.error('Invalid account, cannot create transaction');
                 return null;
             }
 
             const payee = await this._payeeService.getPayee(transactionDto.payeeId);
             if (!payee) {
+                this.logger.error('Invalid payee, cannot create transaction');
+                return null;
+            }
+
+            const valid = this._categoryService.validateTransactionCategories(
+                transactionDto.categories,
+                transactionDto.amount
+            );
+            if (!valid) {
+                this.logger.error('Invalid categories, cannot create transaction');
                 return null;
             }
 
@@ -112,20 +159,83 @@ export class TransactionsService {
             await this._transactionRepository.save(transaction);
 
             // Assign categories
-            await this._categoryService.setTransactionCategories(
+            await this._categoryService.createTransactionCategories(
                 transactionDto.categories,
                 transaction
             );
 
             // Assign tags
-            await this._tagService.setTransactionTags(transactionDto.tags, transaction);
-
-            // Update account balance
-            await this._updateAccountBalance(account);
+            await this._tagService.createTransactionTags(transactionDto.tags, transaction);
 
             return transaction.transactionId;
-        } catch {
+        } catch (e) {
+            this.logger.error('Exception when creating transaction', e);
             return null;
+        }
+    }
+
+    /**
+     * Update the data of an existing transaction
+     *
+     * @param transactionDto
+     */
+    async updateTransaction(transactionDto: UpdateTransactionDto): Promise<boolean> {
+        try {
+            // Get transaction
+            const transaction = await this.getTransaction(transactionDto.transactionId);
+            if (!transaction) {
+                this.logger.error('Cannot find existing transaction');
+                return false;
+            }
+
+            const valid = this._categoryService.validateTransactionCategories(
+                transactionDto.categories,
+                transactionDto.amount
+            );
+            if (!valid) {
+                this.logger.error('Invalid categories, cannot update transaction');
+                return false;
+            }
+
+            // Update transaction information
+            transaction.date = transactionDto.date;
+            if (Number(transaction.totalAmount) !== transactionDto.amount)
+                transaction.totalAmount = transactionDto.amount;
+            transaction.notes = transactionDto.notes;
+            transaction.status = transactionDto.status;
+
+            // Update account
+            if (transaction.account.accountId !== transactionDto.accountId) {
+                const account = await this._accountService.getAccount(transactionDto.accountId);
+                if (account) {
+                    transaction.account = account;
+                }
+            }
+
+            // Update payee
+            if (transaction.payee.payeeId !== transactionDto.payeeId) {
+                const payee = await this._payeeService.getPayee(transactionDto.payeeId);
+                if (payee) {
+                    transaction.payee = payee;
+                }
+            }
+
+            // Save changes
+            await this._transactionRepository.save(transaction);
+
+            // Update categories
+            await this._categoryService.updateTransactionCategories(
+                transactionDto.categories,
+                transaction
+            );
+
+            // Update tags
+            await this._tagService.updateTransactionTags(transactionDto.tags, transaction);
+
+            return true;
+        } catch (e) {
+            this.logger.error('Exception when updating transaction:', e);
+            return false;
         }
     }
 
@@ -164,22 +274,5 @@ export class TransactionsService {
                     })
                 ) ?? [],
         };
-    }
-
-    /**
-     * Recalculate and update the account balance
-     *
-     * @param account
-     */
-    private async _updateAccountBalance(account: Account): Promise<void> {
-        // Get new balance
-        // @ts-expect-error columnName is valid
-        const balance = await this._transactionRepository.sum('totalAmount', {
-            account: {
-                accountId: account.accountId,
-            },
-        });
-
-        await this._accountService.setAccountBalance(account, balance ?? 0);
     }
 }

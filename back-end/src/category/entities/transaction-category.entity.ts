@@ -12,6 +12,12 @@ import { Category } from './category.entity';
 
 @Entity('transaction_category')
 @Index('transaction_category_transaction_id_category_id_idx', ['transaction', 'category'])
+@Index('transaction_category_transaction_id_order_idx', ['transaction', 'order'])
+@Index(
+    'transaction_category_transaction_id_category_id_order_idx',
+    ['transaction', 'category', 'order'],
+    { unique: true }
+)
 export class TransactionCategory {
     @PrimaryGeneratedColumn({
         type: 'integer',
@@ -56,6 +62,13 @@ export class TransactionCategory {
         nullable: true,
     })
     notes: string | undefined;
+
+    @Column({
+        type: 'integer',
+        nullable: false,
+        default: 0,
+    })
+    order!: number;
 
     @CreateDateColumn({
         type: 'timestamptz',

@@ -20,7 +20,7 @@ async function bootstrap() {
         .addTag('Payee')
         .addTag('Tags')
         .addTag('Transactions')
-        .setVersion('0.0.6')
+        .setVersion('0.0.8')
         .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);

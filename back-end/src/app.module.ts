@@ -16,6 +16,7 @@ import { Tag } from './tags/entities/tag.entity';
 import { TransactionTag } from './tags/entities/transaction-tag.entity';
 import { TagsModule } from './tags/tags.module';
 import { Transaction } from './transactions/entities/transaction.entity';
+import { TransactionSubscriber } from './transactions/entities/transaction.subscriber';
 import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
@@ -41,6 +42,7 @@ import { TransactionsModule } from './transactions/transactions.module';
                 TransactionCategory,
                 TransactionTag,
             ],
+            subscribers: [TransactionSubscriber],
             // PROD: synchronize true should not be used in prod
             synchronize: true,
         }),
