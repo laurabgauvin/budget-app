@@ -45,7 +45,7 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-API is at URL: http://localhost:3000/api
+API is at URL: http://localhost:3000/
 
 ## Test
 

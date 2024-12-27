@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -17,5 +17,10 @@ export class TransactionsController {
     @Put()
     updateTransaction(@Body() dto: UpdateTransactionDto): Promise<boolean> {
         return this._transactionService.updateTransaction(dto);
+    }
+
+    @Delete(':id')
+    deleteTransaction(@Param('id') id: string): Promise<boolean> {
+        return this._transactionService.deleteTransaction(id);
     }
 }

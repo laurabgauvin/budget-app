@@ -239,6 +239,26 @@ export class TransactionsService {
         }
     }
 
+    /**
+     * Delete an existing transaction
+     *
+     * @param id
+     */
+    async deleteTransaction(id: string): Promise<boolean> {
+        try {
+            const transaction = await this._transactionRepository.findOneBy({
+                transactionId: id,
+            });
+            if (!transaction) return true;
+
+            await this._transactionRepository.remove(transaction);
+            return true;
+        } catch (e) {
+            this.logger.error('Exception when deleting transaction', e);
+            return false;
+        }
+    }
+
     // -----------------------------------------------------------------------------------------------------
     // @ Private methods
     // -----------------------------------------------------------------------------------------------------

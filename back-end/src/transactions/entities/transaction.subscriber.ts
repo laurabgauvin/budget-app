@@ -28,7 +28,7 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
      * @param event
      */
     async afterInsert(event: InsertEvent<Transaction>) {
-        await this._updateAccountBalance(event.manager, event.entity);
+        await this._updateAccountBalance(event.manager, event.entity, 'after');
     }
 
     /**
@@ -58,21 +58,21 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
     }
 
     /**
-     * Called after entity removal
+     * Called before entity removal
      *
      * @param event
      */
-    async afterRemove(event: RemoveEvent<Transaction>) {
-        await this._updateAccountBalance(event.manager, event.databaseEntity);
+    async beforeRemove(event: RemoveEvent<Transaction>) {
+        await this._updateAccountBalance(event.manager, event.databaseEntity, 'before');
     }
 
     /**
-     * Called after entity soft removal
+     * Called before entity soft removal
      *
      * @param event
      */
-    async afterSoftRemove(event: SoftRemoveEvent<Transaction>) {
-        await this._updateAccountBalance(event.manager, event.databaseEntity);
+    async beforeSoftRemove(event: SoftRemoveEvent<Transaction>) {
+        await this._updateAccountBalance(event.manager, event.databaseEntity, 'before');
     }
 
     // -----------------------------------------------------------------------------------------------------
@@ -89,9 +89,34 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
     private async _updateAccountBalance(
         manager: EntityManager,
         transaction: Transaction,
-        beforeAfter: 'before' | 'after' = 'after'
+        beforeAfter: 'before' | 'after'
     ): Promise<void> {
         try {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            let accountId: string | undefined = transaction.account?.accountId;
+            if (!accountId) {
+                accountId = (
+                    await manager.findOne<Transaction>(
+                        {
+                            type: transaction,
+                            name: 'transaction',
+                        },
+                        {
+                            where: {
+                                transactionId: transaction.transactionId,
+                            },
+                            relations: ['account'],
+                        }
+                    )
+                )?.account.accountId;
+            }
+            if (!accountId) {
+                this.logger.error(
+                    'Could not determine account id when auto-updating account balance'
+                );
+                return;
+            }
+
             // Get new balance
             let newBalance =
                 (await manager.sum(
@@ -103,13 +128,13 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
                     'totalAmount',
                     {
                         account: {
-                            accountId: transaction.account.accountId,
+                            accountId: accountId,
                         },
                     }
                 )) ?? 0;
             if (beforeAfter === 'before') newBalance -= Number(transaction.totalAmount ?? 0);
 
-            await manager.update(Account, transaction.account.accountId, { balance: newBalance });
+            await manager.update(Account, accountId, { balance: newBalance });
         } catch (e) {
             this.logger.error('Exception when auto-updating account balance:', e);
         }
