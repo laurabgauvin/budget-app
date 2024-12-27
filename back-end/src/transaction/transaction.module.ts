@@ -5,8 +5,8 @@ import { CategoryModule } from '../category/category.module';
 import { PayeeModule } from '../payee/payee.module';
 import { TagModule } from '../tag/tag.module';
 import { Transaction } from './entities/transaction.entity';
-import { TransactionsController } from './transactions.controller';
-import { TransactionsService } from './transactions.service';
+import { TransactionController } from './transaction.controller';
+import { TransactionService } from './transaction.service';
 
 @Module({
     imports: [
@@ -16,7 +16,7 @@ import { TransactionsService } from './transactions.service';
         PayeeModule,
         TagModule,
     ],
-    providers: [TransactionsService],
-    controllers: [TransactionsController],
+    providers: [TransactionService],
+    controllers: [TransactionController],
 })
-export class TransactionsModule {}
+export class TransactionModule {}

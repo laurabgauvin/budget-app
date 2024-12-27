@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Transaction } from '../transactions/entities/transaction.entity';
+import { Transaction } from '../transaction/entities/transaction.entity';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { TagInfoDto } from './dto/tag-info.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';

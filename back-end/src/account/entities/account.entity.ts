@@ -6,7 +6,7 @@ import {
     OneToMany,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Transaction } from '../../transactions/entities/transaction.entity';
+import { Transaction } from '../../transaction/entities/transaction.entity';
 
 export enum AccountType {
     Cash = 'cash',

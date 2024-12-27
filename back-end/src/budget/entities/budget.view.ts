@@ -2,7 +2,7 @@ import { DataSource, ViewColumn, ViewEntity } from 'typeorm';
 import { Account } from '../../account/entities/account.entity';
 import { Category } from '../../category/entities/category.entity';
 import { TransactionCategory } from '../../category/entities/transaction-category.entity';
-import { Transaction } from '../../transactions/entities/transaction.entity';
+import { Transaction } from '../../transaction/entities/transaction.entity';
 import { BudgetMonthCategory } from './budget-month-category.entity';
 import { BudgetMonth } from './budget-month.entity';
 import { Budget } from './budget.entity';

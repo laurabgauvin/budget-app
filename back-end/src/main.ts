@@ -19,8 +19,8 @@ async function bootstrap() {
         .addTag('Category')
         .addTag('Payee')
         .addTag('Tag')
-        .addTag('Transactions')
-        .setVersion('0.0.8')
+        .addTag('Transaction')
+        .setVersion('0.0.9')
         .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('', app, document);

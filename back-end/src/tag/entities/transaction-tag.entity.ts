@@ -6,7 +6,7 @@ import {
     ManyToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Transaction } from '../../transactions/entities/transaction.entity';
+import { Transaction } from '../../transaction/entities/transaction.entity';
 import { Tag } from './tag.entity';
 
 @Entity('transaction_tag')

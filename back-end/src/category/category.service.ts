@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { TransactionCategoryDto } from '../transactions/dto/create-transaction.dto';
-import { Transaction } from '../transactions/entities/transaction.entity';
+import { TransactionCategoryDto } from '../transaction/dto/create-transaction.dto';
+import { Transaction } from '../transaction/entities/transaction.entity';
 import { CategoryInfoDto } from './dto/category-info.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';

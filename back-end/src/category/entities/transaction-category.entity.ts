@@ -7,7 +7,7 @@ import {
     ManyToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Transaction } from '../../transactions/entities/transaction.entity';
+import { Transaction } from '../../transaction/entities/transaction.entity';
 import { Category } from './category.entity';
 
 @Entity('transaction_category')

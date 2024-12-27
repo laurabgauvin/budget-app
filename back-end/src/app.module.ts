@@ -15,9 +15,9 @@ import { PayeeModule } from './payee/payee.module';
 import { Tag } from './tag/entities/tag.entity';
 import { TransactionTag } from './tag/entities/transaction-tag.entity';
 import { TagModule } from './tag/tag.module';
-import { Transaction } from './transactions/entities/transaction.entity';
-import { TransactionSubscriber } from './transactions/entities/transaction.subscriber';
-import { TransactionsModule } from './transactions/transactions.module';
+import { Transaction } from './transaction/entities/transaction.entity';
+import { TransactionSubscriber } from './transaction/entities/transaction.subscriber';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
     imports: [
@@ -47,7 +47,7 @@ import { TransactionsModule } from './transactions/transactions.module';
             // PROD: synchronize true should not be used in prod
             synchronize: true,
         }),
-        TransactionsModule,
+        TransactionModule,
         BudgetModule,
         CategoryModule,
         PayeeModule,

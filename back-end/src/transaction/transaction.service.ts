@@ -15,8 +15,8 @@ import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { Transaction } from './entities/transaction.entity';
 
 @Injectable()
-export class TransactionsService {
-    private readonly logger = new Logger(TransactionsService.name);
+export class TransactionService {
+    private readonly logger = new Logger(TransactionService.name);
     private readonly loadTransactionAllRelations: FindOptionsRelations<Transaction> = {
         account: true,
         payee: true,

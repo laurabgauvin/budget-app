@@ -3,12 +3,12 @@ import { ApiTags } from '@nestjs/swagger';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { TransactionInfoDto } from './dto/transaction-info.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
-import { TransactionsService } from './transactions.service';
+import { TransactionService } from './transaction.service';
 
-@ApiTags('Transactions')
-@Controller('transactions')
-export class TransactionsController {
-    constructor(private readonly _transactionService: TransactionsService) {}
+@ApiTags('Transaction')
+@Controller('transaction')
+export class TransactionController {
+    constructor(private readonly _transactionService: TransactionService) {}
 
     @Get()
     getAllTransactions(): Promise<TransactionInfoDto[]> {
