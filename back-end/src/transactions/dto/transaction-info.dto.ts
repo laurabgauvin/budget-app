@@ -4,7 +4,9 @@ export interface TransactionInfoDto {
     transactionId: string;
     date: Date | undefined;
     accountId: string;
+    accountName: string;
     payeeId: string;
+    payeeName: string;
     totalAmount: number;
     notes: string;
     status: TransactionStatus;
@@ -13,15 +15,14 @@ export interface TransactionInfoDto {
 }
 
 export interface TransactionTagInfoDto {
-    transactionTagId: number;
     tagId: string;
     tagName: string;
 }
 
 export interface TransactionCategoryInfoDto {
-    transactionCategoryId: number;
     categoryId: string;
     categoryName: string;
     amount: number;
     notes: string;
+    order: number;
 }

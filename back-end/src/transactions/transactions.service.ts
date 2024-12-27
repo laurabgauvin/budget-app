@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsRelations, Repository } from 'typeorm';
 import { AccountService } from '../account/account.service';
 import { CategoryService } from '../category/category.service';
 import { PayeeService } from '../payee/payee.service';
@@ -17,6 +17,16 @@ import { Transaction } from './entities/transaction.entity';
 @Injectable()
 export class TransactionsService {
     private readonly logger = new Logger(TransactionsService.name);
+    private readonly loadTransactionAllRelations: FindOptionsRelations<Transaction> = {
+        account: true,
+        payee: true,
+        transactionTags: {
+            tag: true,
+        },
+        transactionCategories: {
+            category: true,
+        },
+    };
 
     constructor(
         @InjectRepository(Transaction)
@@ -36,6 +46,7 @@ export class TransactionsService {
                 order: {
                     date: 'desc',
                 },
+                relations: this.loadTransactionAllRelations,
             });
             if (transactions.length > 0) {
                 return transactions.map((c) => this._mapTransactionInfo(c));
@@ -63,6 +74,7 @@ export class TransactionsService {
                 order: {
                     date: 'desc',
                 },
+                relations: this.loadTransactionAllRelations,
             });
             if (transactions.length > 0) {
                 return transactions.map((c) => this._mapTransactionInfo(c));
@@ -90,6 +102,7 @@ export class TransactionsService {
                 order: {
                     date: 'desc',
                 },
+                relations: this.loadTransactionAllRelations,
             });
             if (transactions.length > 0) {
                 return transactions.map((c) => this._mapTransactionInfo(c));
@@ -97,6 +110,36 @@ export class TransactionsService {
             return [];
         } catch (e) {
             this.logger.error('Exception when getting transactions by account:', e);
+            return [];
+        }
+    }
+
+    /**
+     * Get all transactions for a category `TransactionInfoDto`
+     *
+     * @param categoryId
+     */
+    async getTransactionInfosByCategory(categoryId: string): Promise<TransactionInfoDto[]> {
+        try {
+            const transactions = await this._transactionRepository.find({
+                where: {
+                    transactionCategories: {
+                        category: {
+                            categoryId: categoryId,
+                        },
+                    },
+                },
+                order: {
+                    date: 'desc',
+                },
+                relations: this.loadTransactionAllRelations,
+            });
+            if (transactions.length > 0) {
+                return transactions.map((c) => this._mapTransactionInfo(c));
+            }
+            return [];
+        } catch (e) {
+            this.logger.error('Exception when getting transactions by category:', e);
             return [];
         }
     }
@@ -270,15 +313,18 @@ export class TransactionsService {
      */
     private _mapTransactionInfo(transaction: Transaction): TransactionInfoDto {
         return {
-            ...transaction,
+            transactionId: transaction.transactionId,
+            date: transaction.date,
             accountId: transaction.account.accountId,
+            accountName: transaction.account.name ?? '',
             payeeId: transaction.payee.payeeId,
+            payeeName: transaction.payee.name ?? '',
             totalAmount: transaction.totalAmount ?? 0,
             notes: transaction.notes ?? '',
+            status: transaction.status,
             tags:
                 transaction.transactionTags?.map(
                     (tt): TransactionTagInfoDto => ({
-                        transactionTagId: tt.transactionTagId,
                         tagId: tt.tag.tagId,
                         tagName: tt.tag.name ?? '',
                     })
@@ -286,11 +332,11 @@ export class TransactionsService {
             categories:
                 transaction.transactionCategories?.map(
                     (tc): TransactionCategoryInfoDto => ({
-                        transactionCategoryId: tc.transactionCategoryId,
                         categoryId: tc.category.categoryId,
                         categoryName: tc.category.name ?? '',
                         amount: tc.amount ?? 0,
                         notes: tc.notes ?? '',
+                        order: tc.order,
                     })
                 ) ?? [],
         };
