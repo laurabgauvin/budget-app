@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AccountInfoDto } from './dto/account-info.dto';
@@ -8,6 +8,8 @@ import { Account } from './entities/account.entity';
 
 @Injectable()
 export class AccountService {
+    private readonly logger = new Logger(AccountService.name);
+
     constructor(
         @InjectRepository(Account)
         private _accountRepository: Repository<Account>
@@ -17,11 +19,16 @@ export class AccountService {
      * Get all accounts `AccountInfoDto`
      */
     async getAllAccountInfos(): Promise<AccountInfoDto[]> {
-        const accounts = await this._accountRepository.find();
-        if (accounts.length > 0) {
-            return accounts.map((c) => this._mapAccountInfo(c));
+        try {
+            const accounts = await this._accountRepository.find();
+            if (accounts.length > 0) {
+                return accounts.map((c) => this._mapAccountInfo(c));
+            }
+            return [];
+        } catch (e) {
+            this.logger.error('Exception when getting all accounts:', e);
+            return [];
         }
-        return [];
     }
 
     /**
@@ -30,11 +37,16 @@ export class AccountService {
      * @param id
      */
     async getAccountInfo(id: string): Promise<AccountInfoDto | null> {
-        const account = await this.getAccount(id);
-        if (account) {
-            return this._mapAccountInfo(account);
+        try {
+            const account = await this.getAccount(id);
+            if (account) {
+                return this._mapAccountInfo(account);
+            }
+            return null;
+        } catch (e) {
+            this.logger.error('Exception when getting account:', e);
+            return null;
         }
-        return null;
     }
 
     /**
@@ -43,7 +55,12 @@ export class AccountService {
      * @param id
      */
     async getAccount(id: string): Promise<Account | null> {
-        return await this._accountRepository.findOneBy({ accountId: id });
+        try {
+            return await this._accountRepository.findOneBy({ accountId: id });
+        } catch (e) {
+            this.logger.error('Exception when getting account:', e);
+            return null;
+        }
     }
 
     /**
@@ -61,7 +78,8 @@ export class AccountService {
 
             const db = await this._accountRepository.save(account);
             return db.accountId;
-        } catch {
+        } catch (e) {
+            this.logger.error('Exception when creating account:', e);
             return null;
         }
     }
@@ -83,7 +101,24 @@ export class AccountService {
                 return true;
             }
             return false;
-        } catch {
+        } catch (e) {
+            this.logger.error('Exception when updating account:', e);
+            return false;
+        }
+    }
+
+    async deleteAccount(accountId: string): Promise<boolean> {
+        try {
+            const account = await this.getAccount(accountId);
+            if (account) {
+                account.tracked = false;
+                await this._accountRepository.save(account);
+                await this._accountRepository.softRemove(account);
+                return true;
+            }
+            return true;
+        } catch (e) {
+            this.logger.error('Exception when deleting account:', e);
             return false;
         }
     }

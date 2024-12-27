@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AccountService } from './account.service';
 import { AccountInfoDto } from './dto/account-info.dto';
@@ -28,5 +28,10 @@ export class AccountController {
     @Put()
     updateAccount(@Body() dto: UpdateAccountDto): Promise<boolean> {
         return this._accountService.updateAccount(dto);
+    }
+
+    @Delete(':id')
+    deleteAccount(@Param('id') id: string): Promise<boolean> {
+        return this._accountService.deleteAccount(id);
     }
 }

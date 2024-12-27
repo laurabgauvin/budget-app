@@ -20,5 +20,7 @@ module.exports = tseslint.config({
     rules: {
         '@typescript-eslint/no-extraneous-class': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
+        // TODO: change to warn, disable auto-fix (`transaction.service.ts`)
+        '@typescript-eslint/no-unnecessary-condition': 'off',
     },
 });

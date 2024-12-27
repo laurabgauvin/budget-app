@@ -315,8 +315,8 @@ export class TransactionService {
         return {
             transactionId: transaction.transactionId,
             date: transaction.date,
-            accountId: transaction.account.accountId,
-            accountName: transaction.account.name ?? '',
+            accountId: transaction.account?.accountId ?? '',
+            accountName: transaction.account?.name ?? '',
             payeeId: transaction.payee.payeeId,
             payeeName: transaction.payee.name ?? '',
             totalAmount: transaction.totalAmount ?? 0,

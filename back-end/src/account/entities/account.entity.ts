@@ -1,6 +1,7 @@
 import {
     Column,
     CreateDateColumn,
+    DeleteDateColumn,
     Entity,
     Index,
     OneToMany,
@@ -63,6 +64,13 @@ export class Account {
         nullable: false,
     })
     createdDate!: Date;
+
+    @DeleteDateColumn({
+        type: 'timestamptz',
+        name: 'deleted_date',
+        nullable: true,
+    })
+    deletedDate: Date | undefined;
 
     @OneToMany(() => Transaction, (transaction) => transaction.account)
     transactions: Transaction[] | undefined;

@@ -92,7 +92,6 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
         beforeAfter: 'before' | 'after'
     ): Promise<void> {
         try {
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             let accountId: string | undefined = transaction.account?.accountId;
             if (!accountId) {
                 accountId = (
