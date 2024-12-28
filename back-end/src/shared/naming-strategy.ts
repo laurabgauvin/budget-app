@@ -1,6 +1,6 @@
 import { NamingStrategyInterface, Table, View } from 'typeorm';
 
-export const namingStrategy: NamingStrategyInterface = {
+export const NAMING_STRATEGY: NamingStrategyInterface = {
     /**
      * Table name
      *
@@ -33,7 +33,7 @@ export const namingStrategy: NamingStrategyInterface = {
      * @param columnNames
      */
     primaryKeyName(tableOrName: Table | string, columnNames: string[]): string {
-        return (tableOrName instanceof Table ? tableOrName.name : tableOrName) + '_pkey';
+        return `${getTableName(tableOrName)}_pkey`;
     },
 
     /**
@@ -44,14 +44,7 @@ export const namingStrategy: NamingStrategyInterface = {
      * @param where
      */
     indexName(tableOrName: Table | View | string, columns: string[], where?: string): string {
-        return (
-            (tableOrName instanceof Table || tableOrName instanceof View
-                ? tableOrName.name
-                : tableOrName) +
-            '_' +
-            columns.join('_') +
-            '_idx'
-        );
+        return mergeTableAndColumnNames(tableOrName, columns, 'idx');
     },
 
     /**
@@ -78,12 +71,7 @@ export const namingStrategy: NamingStrategyInterface = {
         referencedTablePath?: string,
         referencedColumnNames?: string[]
     ): string {
-        return (
-            (tableOrName instanceof Table ? tableOrName.name : tableOrName) +
-            '_' +
-            columnNames.join('_') +
-            '_fkey'
-        );
+        return mergeTableAndColumnNames(tableOrName, columnNames, 'fkey');
     },
 
     /**
@@ -100,7 +88,7 @@ export const namingStrategy: NamingStrategyInterface = {
         firstPropertyName: string,
         secondPropertyName: string
     ): string {
-        return firstTableName + '_' + secondTableName;
+        return `${firstTableName}_${secondTableName}`;
     },
 
     /**
@@ -132,75 +120,98 @@ export const namingStrategy: NamingStrategyInterface = {
     materializedPathColumnName: '',
     nestedSetColumnNames: { left: '', right: '' },
 
+    /**
+     * Check constraint name
+     *
+     * @param tableOrName
+     * @param expression
+     * @param isEnum
+     */
     checkConstraintName(tableOrName: Table | string, expression: string, isEnum?: boolean): string {
-        console.log(
-            'checkConstraintName:',
-            tableOrName instanceof Table ? tableOrName.name : tableOrName,
-            expression,
-            isEnum
-        );
-        return tableOrName instanceof Table ? tableOrName.name : tableOrName;
+        return `${getTableName(tableOrName)}_check`;
     },
 
+    /**
+     * Closure junction table name
+     *
+     * @param originalClosureTableName
+     */
     closureJunctionTableName(originalClosureTableName: string): string {
-        console.log('closureJunctionTableName:', originalClosureTableName);
-        return originalClosureTableName;
+        return `${originalClosureTableName}_junc`;
     },
 
+    /**
+     * Default constraint name
+     *
+     * @param tableOrName
+     * @param columnName
+     */
     defaultConstraintName(tableOrName: Table | string, columnName: string): string {
-        console.log(
-            'defaultConstraintName:',
-            tableOrName instanceof Table ? tableOrName.name : tableOrName,
-            columnName
-        );
-        return tableOrName instanceof Table ? tableOrName.name : tableOrName;
+        return mergeTableAndColumnNames(tableOrName, [columnName], 'df');
     },
 
+    /**
+     * Exclusion constraint name
+     *
+     * @param tableOrName
+     * @param expression
+     */
     exclusionConstraintName(tableOrName: Table | string, expression: string): string {
-        console.log(
-            'exclusionConstraintName:',
-            tableOrName instanceof Table ? tableOrName.name : tableOrName,
-            expression
-        );
-        return tableOrName instanceof Table ? tableOrName.name : tableOrName;
+        return `${getTableName(tableOrName)}_excl`;
     },
 
+    /**
+     * Join table column duplication prefix
+     *
+     * @param columnName
+     * @param index
+     */
     joinTableColumnDuplicationPrefix(columnName: string, index: number): string {
-        console.log('joinTableColumnDuplicationPrefix:', columnName, index);
-        return columnName;
+        return `${columnName}_${index}`;
     },
 
+    /**
+     * Prefix table name
+     *
+     * @param prefix
+     * @param tableName
+     */
     prefixTableName(prefix: string, tableName: string): string {
-        console.log('prefixTableName:', prefix, tableName);
-        return tableName;
+        return `${prefix}_${tableName}`;
     },
 
+    /**
+     * Relation constraint name
+     *
+     * @param tableOrName
+     * @param columnNames
+     * @param where
+     */
     relationConstraintName(
         tableOrName: Table | string,
         columnNames: string[],
         where?: string
     ): string {
-        console.log(
-            'relationConstraintName:',
-            tableOrName instanceof Table ? tableOrName.name : tableOrName,
-            columnNames,
-            where
-        );
-        return tableOrName instanceof Table ? tableOrName.name : tableOrName;
+        return mergeTableAndColumnNames(tableOrName, columnNames, 'rel');
     },
 
+    /**
+     * Relation name
+     *
+     * @param propertyName
+     */
     relationName(propertyName: string): string {
-        console.log('relationName:', propertyName);
-        return propertyName;
+        return convertToLowercase(propertyName);
     },
 
+    /**
+     * Unique constraint name
+     *
+     * @param tableOrName
+     * @param columnNames
+     */
     uniqueConstraintName(tableOrName: Table | string, columnNames: string[]): string {
-        console.log(
-            'uniqueConstraintName:',
-            tableOrName instanceof Table ? tableOrName.name : tableOrName,
-            columnNames
-        );
-        return tableOrName instanceof Table ? tableOrName.name : tableOrName;
+        return mergeTableAndColumnNames(tableOrName, columnNames, 'unq');
     },
 };
 
@@ -211,4 +222,30 @@ export const namingStrategy: NamingStrategyInterface = {
  */
 function convertToLowercase(value: string): string {
     return value.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase();
+}
+
+/**
+ * Convert the table and column names to a single string with '_' between them
+ *
+ * @param tableOrName
+ * @param columns
+ * @param suffix Optional suffix
+ */
+function mergeTableAndColumnNames(
+    tableOrName: Table | View | string,
+    columns: string[],
+    suffix = ''
+): string {
+    return `${getTableName(tableOrName)}_${columns.join('_')}` + (suffix ? '_' + suffix : '');
+}
+
+/**
+ * Get the table name
+ *
+ * @param tableOrName
+ */
+function getTableName(tableOrName: Table | View | string): string {
+    return tableOrName instanceof Table || tableOrName instanceof View
+        ? tableOrName.name
+        : tableOrName;
 }

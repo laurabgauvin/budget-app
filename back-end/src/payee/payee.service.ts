@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CategoryService } from '../category/category.service';
@@ -9,6 +9,8 @@ import { Payee } from './entities/payee.entity';
 
 @Injectable()
 export class PayeeService {
+    private readonly _logger = new Logger(PayeeService.name);
+
     constructor(
         @InjectRepository(Payee)
         private _payeeRepository: Repository<Payee>,
@@ -68,7 +70,8 @@ export class PayeeService {
 
             const db = await this._payeeRepository.save(payee);
             return db.payeeId;
-        } catch {
+        } catch (e) {
+            this._logger.error('Exception when creating payee:', e);
             return null;
         }
     }

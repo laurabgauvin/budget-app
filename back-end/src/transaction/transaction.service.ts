@@ -6,19 +6,21 @@ import { CategoryService } from '../category/category.service';
 import { PayeeService } from '../payee/payee.service';
 import { TagService } from '../tag/tag.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
-import { TransactionCategoryInfoDto, TransactionInfoDto } from './dto/transaction-info.dto';
+import {
+    TransactionCategoryInfoDto,
+    TransactionInfoDto,
+    TransactionTagInfoDto,
+} from './dto/transaction-info.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { Transaction } from './entities/transaction.entity';
 
 @Injectable()
 export class TransactionService {
-    private readonly logger = new Logger(TransactionService.name);
-    private readonly loadTransactionAllRelations: FindOptionsRelations<Transaction> = {
+    private readonly _logger = new Logger(TransactionService.name);
+    private readonly _loadTransactionAllRelations: FindOptionsRelations<Transaction> = {
         account: true,
         payee: true,
-        /*transactionTags: {
-            tag: true,
-        },*/
+        tags: true,
         transactionCategories: {
             category: true,
         },
@@ -42,14 +44,14 @@ export class TransactionService {
                 order: {
                     date: 'desc',
                 },
-                relations: this.loadTransactionAllRelations,
+                relations: this._loadTransactionAllRelations,
             });
             if (transactions.length > 0) {
                 return transactions.map((c) => this._mapTransactionInfo(c));
             }
             return [];
         } catch (e) {
-            this.logger.error('Exception when getting all transactions:', e);
+            this._logger.error('Exception when getting all transactions:', e);
             return [];
         }
     }
@@ -70,14 +72,14 @@ export class TransactionService {
                 order: {
                     date: 'desc',
                 },
-                relations: this.loadTransactionAllRelations,
+                relations: this._loadTransactionAllRelations,
             });
             if (transactions.length > 0) {
                 return transactions.map((c) => this._mapTransactionInfo(c));
             }
             return [];
         } catch (e) {
-            this.logger.error('Exception when getting transactions by payee:', e);
+            this._logger.error('Exception when getting transactions by payee:', e);
             return [];
         }
     }
@@ -98,14 +100,14 @@ export class TransactionService {
                 order: {
                     date: 'desc',
                 },
-                relations: this.loadTransactionAllRelations,
+                relations: this._loadTransactionAllRelations,
             });
             if (transactions.length > 0) {
                 return transactions.map((c) => this._mapTransactionInfo(c));
             }
             return [];
         } catch (e) {
-            this.logger.error('Exception when getting transactions by account:', e);
+            this._logger.error('Exception when getting transactions by account:', e);
             return [];
         }
     }
@@ -128,14 +130,14 @@ export class TransactionService {
                 order: {
                     date: 'desc',
                 },
-                relations: this.loadTransactionAllRelations,
+                relations: this._loadTransactionAllRelations,
             });
             if (transactions.length > 0) {
                 return transactions.map((c) => this._mapTransactionInfo(c));
             }
             return [];
         } catch (e) {
-            this.logger.error('Exception when getting transactions by category:', e);
+            this._logger.error('Exception when getting transactions by category:', e);
             return [];
         }
     }
@@ -154,7 +156,7 @@ export class TransactionService {
                 relations: ['account', 'payee'],
             });
         } catch (e) {
-            this.logger.error('Exception when getting transaction:', e);
+            this._logger.error('Exception when getting transaction:', e);
             return null;
         }
     }
@@ -168,13 +170,13 @@ export class TransactionService {
         try {
             const account = await this._accountService.getAccount(transactionDto.accountId);
             if (!account) {
-                this.logger.error('Invalid account, cannot create transaction');
+                this._logger.error('Invalid account, cannot create transaction');
                 return null;
             }
 
             const payee = await this._payeeService.getPayee(transactionDto.payeeId);
             if (!payee) {
-                this.logger.error('Invalid payee, cannot create transaction');
+                this._logger.error('Invalid payee, cannot create transaction');
                 return null;
             }
 
@@ -183,7 +185,7 @@ export class TransactionService {
                 transactionDto.amount
             );
             if (!valid) {
-                this.logger.error('Invalid categories, cannot create transaction');
+                this._logger.error('Invalid categories, cannot create transaction');
                 return null;
             }
 
@@ -195,6 +197,7 @@ export class TransactionService {
             transaction.totalAmount = transactionDto.amount;
             transaction.notes = transactionDto.notes;
             transaction.status = transactionDto.status;
+            transaction.tags = await this._tagService.getTagsById(transactionDto.tags);
             await this._transactionRepository.save(transaction);
 
             // Assign categories
@@ -203,12 +206,9 @@ export class TransactionService {
                 transaction
             );
 
-            // Assign tags
-            await this._tagService.createTransactionTags(transactionDto.tags, transaction);
-
             return transaction.transactionId;
         } catch (e) {
-            this.logger.error('Exception when creating transaction', e);
+            this._logger.error('Exception when creating transaction', e);
             return null;
         }
     }
@@ -223,7 +223,7 @@ export class TransactionService {
             // Get transaction
             const transaction = await this.getTransaction(transactionDto.transactionId);
             if (!transaction) {
-                this.logger.error('Cannot find existing transaction');
+                this._logger.error('Cannot find existing transaction');
                 return false;
             }
 
@@ -232,7 +232,7 @@ export class TransactionService {
                 transactionDto.amount
             );
             if (!valid) {
-                this.logger.error('Invalid categories, cannot update transaction');
+                this._logger.error('Invalid categories, cannot update transaction');
                 return false;
             }
 
@@ -242,6 +242,7 @@ export class TransactionService {
                 transaction.totalAmount = transactionDto.amount;
             transaction.notes = transactionDto.notes;
             transaction.status = transactionDto.status;
+            transaction.tags = await this._tagService.getTagsById(transactionDto.tags);
 
             // Update account
             if (transaction.account.accountId !== transactionDto.accountId) {
@@ -268,12 +269,9 @@ export class TransactionService {
                 transaction
             );
 
-            // Update tags
-            await this._tagService.updateTransactionTags(transactionDto.tags, transaction);
-
             return true;
         } catch (e) {
-            this.logger.error('Exception when updating transaction:', e);
+            this._logger.error('Exception when updating transaction:', e);
             return false;
         }
     }
@@ -293,7 +291,7 @@ export class TransactionService {
             await this._transactionRepository.remove(transaction);
             return true;
         } catch (e) {
-            this.logger.error('Exception when deleting transaction', e);
+            this._logger.error('Exception when deleting transaction', e);
             return false;
         }
     }
@@ -318,12 +316,13 @@ export class TransactionService {
             totalAmount: transaction.totalAmount ?? 0,
             notes: transaction.notes ?? '',
             status: transaction.status,
-            tags: /*transaction.transactionTags?.map(
-                    (tt): TransactionTagInfoDto => ({
-                        tagId: tt.tag.tagId,
-                        tagName: tt.tag.name ?? '',
+            tags:
+                transaction.tags?.map(
+                    (tag): TransactionTagInfoDto => ({
+                        tagId: tag.tagId,
+                        tagName: tag.name ?? '',
                     })
-                ) ?? */ [],
+                ) ?? [],
             categories:
                 transaction.transactionCategories?.map(
                     (tc): TransactionCategoryInfoDto => ({

@@ -1,7 +1,15 @@
-import { Column, CreateDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    Index,
+    ManyToMany,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Transaction } from '../../transaction/entities/transaction.entity';
 
 @Entity()
+@Index(['tagId', 'name'])
 export class Tag {
     @PrimaryGeneratedColumn('uuid')
     tagId!: string;
@@ -17,6 +25,8 @@ export class Tag {
     })
     createdDate!: Date;
 
-    @ManyToMany(() => Transaction, (t) => t.tags)
+    @ManyToMany(() => Transaction, (t) => t.tags, {
+        onDelete: 'CASCADE',
+    })
     transactions: Transaction[] | undefined;
 }

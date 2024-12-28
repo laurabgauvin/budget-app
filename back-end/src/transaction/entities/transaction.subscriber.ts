@@ -13,7 +13,7 @@ import { Transaction } from './transaction.entity';
 
 @EventSubscriber()
 export class TransactionSubscriber implements EntitySubscriberInterface<Transaction> {
-    private readonly logger = new Logger(TransactionSubscriber.name);
+    private readonly _logger = new Logger(TransactionSubscriber.name);
 
     /**
      * Indicates that this subscriber only listen to `Transaction` events
@@ -110,7 +110,7 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
                 )?.account.accountId;
             }
             if (!accountId) {
-                this.logger.error(
+                this._logger.error(
                     'Could not determine account id when auto-updating account balance'
                 );
                 return;
@@ -135,7 +135,7 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
 
             await manager.update(Account, accountId, { balance: newBalance });
         } catch (e) {
-            this.logger.error('Exception when auto-updating account balance:', e);
+            this._logger.error('Exception when auto-updating account balance:', e);
         }
     }
 }

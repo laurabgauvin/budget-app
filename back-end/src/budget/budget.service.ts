@@ -12,7 +12,7 @@ import { BudgetView } from './entities/budget.view';
 
 @Injectable()
 export class BudgetService {
-    private readonly logger = new Logger(BudgetService.name);
+    private readonly _logger = new Logger(BudgetService.name);
 
     constructor(
         @InjectRepository(Budget)
@@ -36,7 +36,7 @@ export class BudgetService {
             }
             return [];
         } catch (e) {
-            this.logger.error('Exception when getting all budgets:', e);
+            this._logger.error('Exception when getting all budgets:', e);
             return [];
         }
     }
@@ -54,7 +54,7 @@ export class BudgetService {
             }
             return null;
         } catch (e) {
-            this.logger.error('Exception when getting budget:', e);
+            this._logger.error('Exception when getting budget:', e);
             return null;
         }
     }
@@ -90,7 +90,7 @@ export class BudgetService {
             }
             return [];
         } catch (e) {
-            this.logger.error('Exception when getting budget month:', e);
+            this._logger.error('Exception when getting budget month:', e);
             return [];
         }
     }
@@ -104,7 +104,7 @@ export class BudgetService {
         try {
             return await this._budgetRepository.findOneBy({ budgetId: id });
         } catch (e) {
-            this.logger.error('Exception when getting budget:', e);
+            this._logger.error('Exception when getting budget:', e);
             return null;
         }
     }
@@ -122,7 +122,7 @@ export class BudgetService {
             const db = await this._budgetRepository.save(budget);
             return db.budgetId;
         } catch (e) {
-            this.logger.error('Exception when creating budget:', e);
+            this._logger.error('Exception when creating budget:', e);
             return null;
         }
     }
@@ -143,7 +143,7 @@ export class BudgetService {
             }
             return false;
         } catch (e) {
-            this.logger.error('Exception when updating budget:', e);
+            this._logger.error('Exception when updating budget:', e);
             return false;
         }
     }
@@ -162,7 +162,7 @@ export class BudgetService {
             }
             return true;
         } catch (e) {
-            this.logger.error('Exception when deleting budget:', e);
+            this._logger.error('Exception when deleting budget:', e);
             return false;
         }
     }

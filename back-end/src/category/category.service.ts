@@ -24,7 +24,7 @@ interface CompareTransactionCategories {
 
 @Injectable()
 export class CategoryService {
-    private readonly logger = new Logger(CategoryService.name);
+    private readonly _logger = new Logger(CategoryService.name);
 
     constructor(
         @InjectRepository(Category)
@@ -44,7 +44,7 @@ export class CategoryService {
             }
             return [];
         } catch (e) {
-            this.logger.error('Exception when getting all Category:', e);
+            this._logger.error('Exception when getting all Category:', e);
             return [];
         }
     }
@@ -62,7 +62,7 @@ export class CategoryService {
             }
             return null;
         } catch (e) {
-            this.logger.error('Exception when getting Category:', e);
+            this._logger.error('Exception when getting Category:', e);
             return null;
         }
     }
@@ -76,7 +76,7 @@ export class CategoryService {
         try {
             return await this._categoryRepository.findOneBy({ categoryId: id });
         } catch (e) {
-            this.logger.error('Exception when reading Category:', e);
+            this._logger.error('Exception when reading Category:', e);
             return null;
         }
     }
@@ -94,7 +94,7 @@ export class CategoryService {
             const db = await this._categoryRepository.save(category);
             return db.categoryId;
         } catch (e) {
-            this.logger.error('Exception when creating Category:', e);
+            this._logger.error('Exception when creating Category:', e);
             return null;
         }
     }
@@ -115,7 +115,7 @@ export class CategoryService {
             }
             return false;
         } catch (e) {
-            this.logger.error('Exception when updating Category:', e);
+            this._logger.error('Exception when updating Category:', e);
             return false;
         }
     }
@@ -133,7 +133,7 @@ export class CategoryService {
         // Validate sum of categories matches total transaction amount
         const sum = categories.reduce((s, c) => s + c.amount, 0);
         if (sum !== transactionAmount) {
-            this.logger.error(
+            this._logger.error(
                 `Incorrect TransactionCategory amount total, expected: ${transactionAmount}, actual: ${sum}`
             );
             return false;
@@ -143,7 +143,7 @@ export class CategoryService {
         categories.sort((a, b) => a.order - b.order);
         for (let i = 0; i < categories.length; i++) {
             if (categories[i].order !== i) {
-                this.logger.error(
+                this._logger.error(
                     `Incorrect TransactionCategory order, expected: ${i}, actual: ${categories[i].order}`
                 );
                 return false;
@@ -179,7 +179,7 @@ export class CategoryService {
             }
             return await this._transactionCategoryRepository.save(transactionCategories);
         } catch (e) {
-            this.logger.error('Exception when creating TransactionCategory:', e);
+            this._logger.error('Exception when creating TransactionCategory:', e);
             return [];
         }
     }
@@ -249,7 +249,7 @@ export class CategoryService {
                   })
                 : transactionCategories;
         } catch (e) {
-            this.logger.error('Exception when updating TransactionCategory:', e);
+            this._logger.error('Exception when updating TransactionCategory:', e);
             return [];
         }
     }

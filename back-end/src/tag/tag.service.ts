@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Transaction } from '../transaction/entities/transaction.entity';
+import { In, Repository } from 'typeorm';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { TagInfoDto } from './dto/tag-info.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
@@ -9,7 +8,7 @@ import { Tag } from './entities/tag.entity';
 
 @Injectable()
 export class TagService {
-    private readonly logger = new Logger(TagService.name);
+    private readonly _logger = new Logger(TagService.name);
 
     constructor(
         @InjectRepository(Tag)
@@ -31,7 +30,7 @@ export class TagService {
             }
             return [];
         } catch (e) {
-            this.logger.error('Exception when getting all tags:', e);
+            this._logger.error('Exception when getting all tags:', e);
             return [];
         }
     }
@@ -41,12 +40,26 @@ export class TagService {
      *
      * @param id
      */
-    async getTag(id: string): Promise<Tag | null> {
+    async getTagById(id: string): Promise<Tag | null> {
         try {
             return await this._tagRepository.findOneBy({ tagId: id });
         } catch (e) {
-            this.logger.error('Exception when getting tag:', e);
+            this._logger.error('Exception when getting tag:', e);
             return null;
+        }
+    }
+
+    /**
+     * Get the list of tags `Tag`
+     *
+     * @param tagIds
+     */
+    async getTagsById(tagIds: string[]): Promise<Tag[]> {
+        try {
+            return await this._tagRepository.findBy({ tagId: In(tagIds) });
+        } catch (e) {
+            this._logger.error('Exception when getting tags:', e);
+            return [];
         }
     }
 
@@ -63,7 +76,7 @@ export class TagService {
             const db = await this._tagRepository.save(tag);
             return db.tagId;
         } catch (e) {
-            this.logger.error('Exception when creating tag:', e);
+            this._logger.error('Exception when creating tag:', e);
             return null;
         }
     }
@@ -75,7 +88,7 @@ export class TagService {
      */
     async updateTag(updateTagDto: UpdateTagDto): Promise<boolean> {
         try {
-            const tag = await this.getTag(updateTagDto.tagId);
+            const tag = await this.getTagById(updateTagDto.tagId);
             if (tag) {
                 tag.name = updateTagDto.name;
 
@@ -84,7 +97,7 @@ export class TagService {
             }
             return false;
         } catch (e) {
-            this.logger.error('Exception when updating tag:', e);
+            this._logger.error('Exception when updating tag:', e);
             return false;
         }
     }
@@ -96,111 +109,15 @@ export class TagService {
      */
     async deleteTag(tagId: string): Promise<boolean> {
         try {
-            const tag = await this.getTag(tagId);
+            const tag = await this.getTagById(tagId);
             if (!tag) return true;
 
             await this._tagRepository.remove(tag);
             return true;
         } catch (e) {
-            this.logger.error('Exception when deleting tag:', e);
+            this._logger.error('Exception when deleting tag:', e);
             return false;
         }
-    }
-
-    /**
-     * Create new `TransactionTag` relations for the passed tags and transaction
-     *
-     * @param tagIds
-     * @param transaction
-     */
-    async createTransactionTags(
-        tagIds: string[] | undefined,
-        transaction: Transaction
-    ): Promise<Tag[]> {
-        // TODO: fix
-        return [];
-        /*try {
-            if (tagIds) {
-                const transactionTags: Tag[] = [];
-                for (const t of tagIds) {
-                    const tag = await this.getTag(t);
-                    if (tag) {
-                        const tranTag = new Tag();
-                        tranTag.transaction = transaction;
-                        tranTag.tag = tag;
-                        transactionTags.push(tranTag);
-                    }
-                }
-                return await this._transactionTagRepository.save(transactionTags);
-            }
-            return [];
-        } catch (e) {
-            this.logger.error('Exception when creating transaction tags:', e);
-            return [];
-        }*/
-    }
-
-    /**
-     * Update `TransactionTag` relations to set the passed tags on the transaction
-     *
-     * @param tagIds
-     * @param transaction
-     */
-    async updateTransactionTags(
-        tagIds: string[] | undefined,
-        transaction: Transaction
-    ): Promise<Tag[]> {
-        // TODO: fix
-        return [];
-        /*try {
-            const existingTransactionTags = await this._transactionTagRepository.find({
-                where: {
-                    transaction: {
-                        transactionId: transaction.transactionId,
-                    },
-                },
-                relations: ['tag'],
-            });
-
-            if (tagIds && tagIds.length > 0) {
-                const update = false;
-
-                // Delete removed tags
-                const removedTags = existingTransactionTags.filter(
-                    (tt) => !tagIds.includes(tt.tag.tagId)
-                );
-                if (removedTags.length > 0) {
-                    await this._transactionTagRepository.remove(removedTags);
-                    update = true;
-                }
-
-                // Add new tags
-                const newTagIds = tagIds.filter(
-                    (t) => !existingTransactionTags.map((tt) => tt.tag.tagId).includes(t)
-                );
-                if (newTagIds.length > 0) {
-                    await this.createTransactionTags(newTagIds, transaction);
-                    update = true;
-                }
-
-                if (!update) return existingTransactionTags;
-
-                return await this._transactionTagRepository.findBy({
-                    transaction: {
-                        transactionId: transaction.transactionId,
-                    },
-                });
-            } else {
-                // Delete all tags
-                if (existingTransactionTags.length > 0) {
-                    await this._transactionTagRepository.remove(existingTransactionTags);
-                }
-                return [];
-            }
-        } catch (e) {
-            this.logger.error('Exception when updating transaction tags:', e);
-            return [];
-        }*/
     }
 
     // -----------------------------------------------------------------------------------------------------

@@ -12,7 +12,7 @@ import { Category } from './category/entities/category.entity';
 import { TransactionCategory } from './category/entities/transaction-category.entity';
 import { Payee } from './payee/entities/payee.entity';
 import { PayeeModule } from './payee/payee.module';
-import { namingStrategy } from './shared/naming-strategy';
+import { NAMING_STRATEGY } from './shared/naming-strategy';
 import { Tag } from './tag/entities/tag.entity';
 import { TagModule } from './tag/tag.module';
 import { Transaction } from './transaction/entities/transaction.entity';
@@ -41,7 +41,7 @@ import { TransactionModule } from './transaction/transaction.module';
                 Transaction,
                 TransactionCategory,
             ],
-            namingStrategy: namingStrategy,
+            namingStrategy: NAMING_STRATEGY,
             subscribers: [TransactionSubscriber],
             // PROD: synchronize true should not be used in prod
             synchronize: true,

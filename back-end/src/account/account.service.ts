@@ -8,7 +8,7 @@ import { Account } from './entities/account.entity';
 
 @Injectable()
 export class AccountService {
-    private readonly logger = new Logger(AccountService.name);
+    private readonly _logger = new Logger(AccountService.name);
 
     constructor(
         @InjectRepository(Account)
@@ -26,7 +26,7 @@ export class AccountService {
             }
             return [];
         } catch (e) {
-            this.logger.error('Exception when getting all accounts:', e);
+            this._logger.error('Exception when getting all accounts:', e);
             return [];
         }
     }
@@ -44,7 +44,7 @@ export class AccountService {
             }
             return null;
         } catch (e) {
-            this.logger.error('Exception when getting account:', e);
+            this._logger.error('Exception when getting account:', e);
             return null;
         }
     }
@@ -58,7 +58,7 @@ export class AccountService {
         try {
             return await this._accountRepository.findOneBy({ accountId: id });
         } catch (e) {
-            this.logger.error('Exception when getting account:', e);
+            this._logger.error('Exception when getting account:', e);
             return null;
         }
     }
@@ -79,7 +79,7 @@ export class AccountService {
             const db = await this._accountRepository.save(account);
             return db.accountId;
         } catch (e) {
-            this.logger.error('Exception when creating account:', e);
+            this._logger.error('Exception when creating account:', e);
             return null;
         }
     }
@@ -102,7 +102,7 @@ export class AccountService {
             }
             return false;
         } catch (e) {
-            this.logger.error('Exception when updating account:', e);
+            this._logger.error('Exception when updating account:', e);
             return false;
         }
     }
@@ -118,7 +118,7 @@ export class AccountService {
             }
             return true;
         } catch (e) {
-            this.logger.error('Exception when deleting account:', e);
+            this._logger.error('Exception when deleting account:', e);
             return false;
         }
     }

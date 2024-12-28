@@ -6,9 +6,7 @@ export class CreatePayeeDto {
     @IsString()
     name!: string;
 
-    @ApiProperty({
-        type: 'string',
-        required: false,
-    })
-    defaultCategoryId: string | undefined;
+    @ApiProperty()
+    @IsString()
+    defaultCategoryId!: string;
 }
