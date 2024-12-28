@@ -1,6 +1,7 @@
 const eslint = require('@eslint/js');
 const tseslint = require('typescript-eslint');
 const prettier = require('eslint-config-prettier');
+const disableAutofix = require('eslint-plugin-disable-autofix');
 
 module.exports = tseslint.config({
     files: ['**/*.ts'],
@@ -17,12 +18,14 @@ module.exports = tseslint.config({
         ...tseslint.configs.stylisticTypeChecked,
         prettier,
     ],
+    plugins: {
+        'disable-autofix': disableAutofix,
+    },
     rules: {
         '@typescript-eslint/no-extraneous-class': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
-        // TODO: change to warn, disable auto-fix (`transaction.service.ts`)
         '@typescript-eslint/no-unnecessary-condition': 'off',
-        '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'error',
+        'disable-autofix/@typescript-eslint/no-unnecessary-condition': 'warn',
         '@typescript-eslint/no-unused-vars': 'warn',
         '@typescript-eslint/naming-convention': [
             'error',
