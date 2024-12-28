@@ -313,6 +313,14 @@ export class TransactionService {
             accountName: transaction.account?.name ?? '',
             payeeId: transaction.payee.payeeId,
             payeeName: transaction.payee.name ?? '',
+            categoryId:
+                transaction.transactionCategories?.length === 1
+                    ? transaction.transactionCategories[0].category.categoryId
+                    : '',
+            categoryName:
+                (transaction.transactionCategories?.length === 1
+                    ? transaction.transactionCategories[0].category.name
+                    : 'Split') ?? '',
             totalAmount: transaction.totalAmount ?? 0,
             notes: transaction.notes ?? '',
             status: transaction.status,
@@ -323,16 +331,20 @@ export class TransactionService {
                         tagName: tag.name ?? '',
                     })
                 ) ?? [],
-            categories:
-                transaction.transactionCategories?.map(
-                    (tc): TransactionCategoryInfoDto => ({
-                        categoryId: tc.category.categoryId,
-                        categoryName: tc.category.name ?? '',
-                        amount: tc.amount ?? 0,
-                        notes: tc.notes ?? '',
-                        order: tc.order,
-                    })
-                ) ?? [],
+            subCategories:
+                transaction.transactionCategories && transaction.transactionCategories.length > 1
+                    ? transaction.transactionCategories
+                          .map(
+                              (tc): TransactionCategoryInfoDto => ({
+                                  categoryId: tc.category.categoryId,
+                                  categoryName: tc.category.name ?? '',
+                                  amount: tc.amount ?? 0,
+                                  notes: tc.notes ?? '',
+                                  order: tc.order,
+                              })
+                          )
+                          .sort((a, b) => a.order - b.order)
+                    : [],
         };
     }
 }

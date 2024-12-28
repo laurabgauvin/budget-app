@@ -7,11 +7,13 @@ export interface TransactionInfoDto {
     accountName: string;
     payeeId: string;
     payeeName: string;
+    categoryId: string;
+    categoryName: string;
     totalAmount: number;
     notes: string;
     status: TransactionStatus;
     tags: TransactionTagInfoDto[];
-    categories: TransactionCategoryInfoDto[];
+    subCategories: TransactionCategoryInfoDto[];
 }
 
 export interface TransactionTagInfoDto {
