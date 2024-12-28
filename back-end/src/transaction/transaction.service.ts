@@ -245,7 +245,10 @@ export class TransactionService {
             transaction.tags = await this._tagService.getTagsById(transactionDto.tags);
 
             // Update account
-            if (transaction.account.accountId !== transactionDto.accountId) {
+            if (
+                transaction.account === undefined ||
+                transaction.account.accountId !== transactionDto.accountId
+            ) {
                 const account = await this._accountService.getAccount(transactionDto.accountId);
                 if (account) {
                     transaction.account = account;

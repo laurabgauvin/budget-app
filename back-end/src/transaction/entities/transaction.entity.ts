@@ -32,17 +32,20 @@ export class Transaction {
     })
     date: Date | undefined;
 
+    // Note: may be undefined if the account linked has been soft deleted
     @ManyToOne(() => Account, (account) => account.transactions, {
         cascade: true,
         onDelete: 'RESTRICT',
+        nullable: false,
     })
     @JoinColumn()
     @Index()
-    account!: Account;
+    account: Account | undefined;
 
     @ManyToOne(() => Payee, (payee) => payee.transactions, {
         cascade: true,
         onDelete: 'RESTRICT',
+        nullable: false,
     })
     @JoinColumn()
     @Index()

@@ -107,7 +107,7 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
                             relations: ['account'],
                         }
                     )
-                )?.account.accountId;
+                )?.account?.accountId;
             }
             if (!accountId) {
                 this._logger.error(

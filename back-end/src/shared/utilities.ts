@@ -17,7 +17,7 @@ export function sortByDate(
 
     if (direction === 'asc') {
         return a.getTime() - b.getTime();
-    } else {
+    } 
         return b.getTime() - a.getTime();
-    }
+    
 }

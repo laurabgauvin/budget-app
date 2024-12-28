@@ -1,7 +1,7 @@
 const eslint = require('@eslint/js');
 const tseslint = require('typescript-eslint');
 const prettier = require('eslint-config-prettier');
-const disableAutofix = require('eslint-plugin-disable-autofix');
+const jsdoc = require('eslint-plugin-jsdoc');
 
 module.exports = tseslint.config({
     files: ['**/*.ts'],
@@ -16,16 +16,19 @@ module.exports = tseslint.config({
         eslint.configs.recommended,
         ...tseslint.configs.strictTypeChecked,
         ...tseslint.configs.stylisticTypeChecked,
+        jsdoc.configs['flat/recommended-typescript'],
+        jsdoc.configs['flat/logical-typescript'],
         prettier,
     ],
-    plugins: {
-        'disable-autofix': disableAutofix,
-    },
     rules: {
+        'no-console': 'error',
+        'prefer-template': 'error',
+        'no-else-return': 'error',
+        'no-lonely-if': 'error',
+        eqeqeq: ['error', 'always'],
         '@typescript-eslint/no-extraneous-class': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
-        '@typescript-eslint/no-unnecessary-condition': 'off',
-        'disable-autofix/@typescript-eslint/no-unnecessary-condition': 'warn',
+        '@typescript-eslint/no-unnecessary-condition': 'warn',
         '@typescript-eslint/no-unused-vars': 'warn',
         '@typescript-eslint/naming-convention': [
             'error',
@@ -74,5 +77,8 @@ module.exports = tseslint.config({
                 format: ['UPPER_CASE'],
             },
         ],
+        'jsdoc/require-returns': 'off',
+        'jsdoc/tag-lines': ['warn', 'always', { count: 0, startLines: 1 }],
+        'jsdoc/require-param-description': 'off',
     },
 });

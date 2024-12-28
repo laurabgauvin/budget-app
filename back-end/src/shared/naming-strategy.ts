@@ -1,5 +1,6 @@
 import { NamingStrategyInterface, Table, View } from 'typeorm';
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export const NAMING_STRATEGY: NamingStrategyInterface = {
     /**
      * Table name
@@ -236,7 +237,7 @@ function mergeTableAndColumnNames(
     columns: string[],
     suffix = ''
 ): string {
-    return `${getTableName(tableOrName)}_${columns.join('_')}` + (suffix ? '_' + suffix : '');
+    return `${getTableName(tableOrName)}_${columns.join('_')}${suffix ? `_${suffix}` : ''}`;
 }
 
 /**

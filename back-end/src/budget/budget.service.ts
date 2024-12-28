@@ -77,7 +77,7 @@ export class BudgetService {
                 year: year,
                 month: month,
             });
-            if (budgetView) {
+            if (budgetView.length > 0) {
                 return budgetView.map(
                     (bv): BudgetMonthCategoryDataDto => ({
                         ...bv,
