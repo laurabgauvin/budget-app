@@ -18,7 +18,7 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
     /**
      * Indicates that this subscriber only listen to `Transaction` events
      */
-    listenTo() {
+    listenTo(): typeof Transaction {
         return Transaction;
     }
 
@@ -27,7 +27,7 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
      *
      * @param event
      */
-    async afterInsert(event: InsertEvent<Transaction>) {
+    async afterInsert(event: InsertEvent<Transaction>): Promise<void> {
         await this._updateAccountBalance(event.manager, event.entity, 'after');
     }
 
@@ -36,7 +36,7 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
      *
      * @param event
      */
-    async beforeUpdate(event: UpdateEvent<Transaction>) {
+    async beforeUpdate(event: UpdateEvent<Transaction>): Promise<void> {
         // If the account changed on the transaction, update the balance of the old account
         if (event.updatedRelations.some((c) => c.propertyName === 'account'))
             await this._updateAccountBalance(event.manager, event.databaseEntity, 'before');
@@ -47,7 +47,7 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
      *
      * @param event
      */
-    async afterUpdate(event: UpdateEvent<Transaction>) {
+    async afterUpdate(event: UpdateEvent<Transaction>): Promise<void> {
         // If the transaction amount or account changed, update the balance on the current account
         if (
             event.entity instanceof Transaction &&
@@ -62,7 +62,7 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
      *
      * @param event
      */
-    async beforeRemove(event: RemoveEvent<Transaction>) {
+    async beforeRemove(event: RemoveEvent<Transaction>): Promise<void> {
         await this._updateAccountBalance(event.manager, event.databaseEntity, 'before');
     }
 
@@ -71,7 +71,7 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
      *
      * @param event
      */
-    async beforeSoftRemove(event: SoftRemoveEvent<Transaction>) {
+    async beforeSoftRemove(event: SoftRemoveEvent<Transaction>): Promise<void> {
         await this._updateAccountBalance(event.manager, event.databaseEntity, 'before');
     }
 

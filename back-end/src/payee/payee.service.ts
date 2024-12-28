@@ -13,7 +13,7 @@ export class PayeeService {
 
     constructor(
         @InjectRepository(Payee)
-        private _payeeRepository: Repository<Payee>,
+        private readonly _payeeRepository: Repository<Payee>,
         private readonly _categoryService: CategoryService
     ) {}
 

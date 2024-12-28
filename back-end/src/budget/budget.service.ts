@@ -16,13 +16,13 @@ export class BudgetService {
 
     constructor(
         @InjectRepository(Budget)
-        private _budgetRepository: Repository<Budget>,
+        private readonly _budgetRepository: Repository<Budget>,
         @InjectRepository(BudgetMonth)
-        private _budgetMonthRepository: Repository<BudgetMonth>,
+        private readonly _budgetMonthRepository: Repository<BudgetMonth>,
         @InjectRepository(BudgetMonthCategory)
-        private _budgetMonthCategoryRepository: Repository<BudgetMonthCategory>,
+        private readonly _budgetMonthCategoryRepository: Repository<BudgetMonthCategory>,
         @InjectRepository(BudgetView)
-        private _budgetViewRepository: Repository<BudgetView>
+        private readonly _budgetViewRepository: Repository<BudgetView>
     ) {}
 
     /**

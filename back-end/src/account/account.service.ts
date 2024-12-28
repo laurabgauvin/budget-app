@@ -12,7 +12,7 @@ export class AccountService {
 
     constructor(
         @InjectRepository(Account)
-        private _accountRepository: Repository<Account>
+        private readonly _accountRepository: Repository<Account>
     ) {}
 
     /**

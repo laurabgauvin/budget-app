@@ -28,7 +28,7 @@ export class TransactionService {
 
     constructor(
         @InjectRepository(Transaction)
-        private _transactionRepository: Repository<Transaction>,
+        private readonly _transactionRepository: Repository<Transaction>,
         private readonly _categoryService: CategoryService,
         private readonly _payeeService: PayeeService,
         private readonly _accountService: AccountService,

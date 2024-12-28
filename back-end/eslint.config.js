@@ -26,10 +26,23 @@ module.exports = tseslint.config({
         'no-else-return': 'error',
         'no-lonely-if': 'error',
         eqeqeq: ['error', 'always'],
-        '@typescript-eslint/no-extraneous-class': 'off',
-        '@typescript-eslint/restrict-template-expressions': 'off',
-        '@typescript-eslint/no-unnecessary-condition': 'warn',
+        '@typescript-eslint/no-extraneous-class': [
+            'error',
+            {
+                allowWithDecorator: true,
+            },
+        ],
+        '@typescript-eslint/restrict-template-expressions': [
+            'error',
+            {
+                allowBoolean: true,
+                allowNullish: true,
+                allowNumber: true,
+            },
+        ],
+        '@typescript-eslint/prefer-readonly': 'warn',
         '@typescript-eslint/no-unused-vars': 'warn',
+        '@typescript-eslint/explicit-function-return-type': 'error',
         '@typescript-eslint/naming-convention': [
             'error',
             {

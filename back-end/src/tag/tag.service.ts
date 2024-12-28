@@ -12,7 +12,7 @@ export class TagService {
 
     constructor(
         @InjectRepository(Tag)
-        private _tagRepository: Repository<Tag>
+        private readonly _tagRepository: Repository<Tag>
     ) {}
 
     /**

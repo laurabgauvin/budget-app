@@ -28,9 +28,9 @@ export class CategoryService {
 
     constructor(
         @InjectRepository(Category)
-        private _categoryRepository: Repository<Category>,
+        private readonly _categoryRepository: Repository<Category>,
         @InjectRepository(TransactionCategory)
-        private _transactionCategoryRepository: Repository<TransactionCategory>
+        private readonly _transactionCategoryRepository: Repository<TransactionCategory>
     ) {}
 
     /**
