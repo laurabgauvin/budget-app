@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { isUUID } from 'class-validator';
 import { Repository } from 'typeorm';
 import { CategoryService } from '../category/category.service';
 import { CreatePayeeDto } from './dto/create-payee.dto';
@@ -21,11 +22,22 @@ export class PayeeService {
      * Get all payees `PayeeInfoDto`
      */
     async getAllPayeeInfos(): Promise<PayeeInfoDto[]> {
-        const payees = await this._payeeRepository.find();
-        if (payees.length > 0) {
-            return payees.map((c) => this._mapPayeeInfo(c));
+        try {
+            const payees = await this._payeeRepository.find({
+                relations: {
+                    defaultCategory: true,
+                },
+            });
+            if (payees.length > 0) {
+                return payees.map((c) => this._mapPayeeInfo(c));
+            }
+
+            this._logger.warn('No payee found');
+            return [];
+        } catch (e) {
+            this._logger.error('Exception when getting all payees:', e);
+            return [];
         }
-        return [];
     }
 
     /**
@@ -34,20 +46,82 @@ export class PayeeService {
      * @param id
      */
     async getPayeeInfo(id: string): Promise<PayeeInfoDto | null> {
-        const payee = await this.getPayee(id);
-        if (payee) {
-            return this._mapPayeeInfo(payee);
+        try {
+            const payee = await this.getPayeeById(id);
+            if (payee) {
+                return this._mapPayeeInfo(payee);
+            }
+
+            this._logger.warn(`Could not find payee: '${id}'`);
+            return null;
+        } catch (e) {
+            this._logger.error('Exception when getting the payee:', e);
+            return null;
         }
-        return null;
     }
 
     /**
-     * Get a single payee `Payee`
+     * Get a single payee `PayeeInfoDto` by name. Loads `DefaultCategory` relation
+     *
+     * @param name
+     */
+    async getPayeeInfoByName(name: string): Promise<PayeeInfoDto | null> {
+        try {
+            const payee = await this._payeeRepository.findOne({
+                where: { name: name },
+                relations: {
+                    defaultCategory: true,
+                },
+            });
+            if (payee) {
+                return this._mapPayeeInfo(payee);
+            }
+
+            this._logger.warn(`Could not find payee: '${name}'`);
+            return null;
+        } catch (e) {
+            this._logger.error('Exception when getting the payee by name:', e);
+            return null;
+        }
+    }
+
+    /**
+     * Get a single payee `Payee`. Loads `Transactions` and `DefaultCategory` relations
      *
      * @param id
      */
-    async getPayee(id: string): Promise<Payee | null> {
-        return await this._payeeRepository.findOneBy({ payeeId: id });
+    async getPayeeById(id: string): Promise<Payee | null> {
+        try {
+            return await this._payeeRepository.findOne({
+                where: {
+                    payeeId: id,
+                },
+                relations: {
+                    transactions: true,
+                    defaultCategory: true,
+                },
+            });
+        } catch (e) {
+            this._logger.error('Exception when getting the payee:', e);
+            return null;
+        }
+    }
+
+    /**
+     * Get the number of transactions using this payee
+     *
+     * @param id
+     */
+    async getPayeeTransactionCount(id: string): Promise<number> {
+        try {
+            const payee = await this.getPayeeById(id);
+            if (!payee) return 0;
+
+            return payee.transactions?.length ?? 0;
+        } catch (e) {
+            this._logger.error('Exception when getting the payee transaction count:', e);
+            return -1;
+        }
     }
 
     /**
@@ -57,9 +131,18 @@ export class PayeeService {
      */
     async createPayee(createPayeeDto: CreatePayeeDto): Promise<string | null> {
         try {
+            // Check if a payee with that name already exists
+            const existingPayee = await this.getPayeeInfoByName(createPayeeDto.name);
+            if (existingPayee) {
+                this._logger.error(
+                    `A payee with this name: '${createPayeeDto.name}' already exists`
+                );
+                return null;
+            }
+
             const payee = new Payee();
             payee.name = createPayeeDto.name;
-            if (createPayeeDto.defaultCategoryId) {
+            if (isUUID(createPayeeDto.defaultCategoryId)) {
                 const category = await this._categoryService.getCategory(
                     createPayeeDto.defaultCategoryId
                 );
@@ -83,23 +166,62 @@ export class PayeeService {
      */
     async updatePayee(updatePayeeDto: UpdatePayeeDto): Promise<boolean> {
         try {
-            const payee = await this.getPayee(updatePayeeDto.payeeId);
+            // Check if a payee with that name already exists
+            const existingPayee = await this.getPayeeInfoByName(updatePayeeDto.name);
+            if (existingPayee && existingPayee.payeeId !== updatePayeeDto.payeeId) {
+                this._logger.error(
+                    `A payee with this name: '${updatePayeeDto.name}' already exists`
+                );
+                return false;
+            }
+
+            const payee = await this.getPayeeById(updatePayeeDto.payeeId);
             if (payee) {
                 payee.name = updatePayeeDto.name;
-                if (updatePayeeDto.defaultCategoryId) {
+                if (isUUID(updatePayeeDto.defaultCategoryId)) {
                     const category = await this._categoryService.getCategory(
                         updatePayeeDto.defaultCategoryId
                     );
                     if (category) {
                         payee.defaultCategory = category;
                     }
+                } else {
+                    payee.defaultCategory = null;
                 }
 
                 await this._payeeRepository.save(payee);
                 return true;
             }
+
+            this._logger.warn(`Could not find payee: '${updatePayeeDto.payeeId}' to update`);
             return false;
-        } catch {
+        } catch (e) {
+            this._logger.error('Exception when updating payee:', e);
+            return false;
+        }
+    }
+
+    /**
+     * Delete an existing payee
+     *
+     * @param id
+     */
+    async deletePayee(id: string): Promise<boolean> {
+        try {
+            const payee = await this.getPayeeById(id);
+            if (!payee) return true;
+
+            if (payee.transactions && payee.transactions.length > 0) {
+                this._logger.error(
+                    `Payee: '${payee.name}' cannot be deleted, it has ${payee.transactions.length} transactions`
+                );
+                return false;
+            }
+
+            await this._payeeRepository.remove(payee);
+            return true;
+        } catch (e) {
+            this._logger.error('Exception when deleting payee:', e);
             return false;
         }
     }
@@ -115,7 +237,8 @@ export class PayeeService {
      */
     private _mapPayeeInfo(payee: Payee): PayeeInfoDto {
         return {
-            ...payee,
+            payeeId: payee.payeeId,
+            name: payee.name,
             defaultCategoryId: payee.defaultCategory?.categoryId,
         };
     }

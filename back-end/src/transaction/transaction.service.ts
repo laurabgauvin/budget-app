@@ -6,6 +6,7 @@ import { CategoryService } from '../category/category.service';
 import { PayeeService } from '../payee/payee.service';
 import { TagService } from '../tag/tag.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { MoveToPayeeDto } from './dto/move-to-payee.dto';
 import {
     TransactionCategoryInfoDto,
     TransactionInfoDto,
@@ -174,7 +175,7 @@ export class TransactionService {
                 return null;
             }
 
-            const payee = await this._payeeService.getPayee(transactionDto.payeeId);
+            const payee = await this._payeeService.getPayeeById(transactionDto.payeeId);
             if (!payee) {
                 this._logger.error('Invalid payee, cannot create transaction');
                 return null;
@@ -208,7 +209,7 @@ export class TransactionService {
 
             return transaction.transactionId;
         } catch (e) {
-            this._logger.error('Exception when creating transaction', e);
+            this._logger.error('Exception when creating transaction:', e);
             return null;
         }
     }
@@ -257,7 +258,7 @@ export class TransactionService {
 
             // Update payee
             if (transaction.payee.payeeId !== transactionDto.payeeId) {
-                const payee = await this._payeeService.getPayee(transactionDto.payeeId);
+                const payee = await this._payeeService.getPayeeById(transactionDto.payeeId);
                 if (payee) {
                     transaction.payee = payee;
                 }
@@ -280,6 +281,34 @@ export class TransactionService {
     }
 
     /**
+     * Move all transactions from one payee to another
+     *
+     * @param dto
+     */
+    async moveToPayee(dto: MoveToPayeeDto): Promise<number> {
+        try {
+            const oldPayee = await this._payeeService.getPayeeById(dto.oldPayeeId);
+            if (!oldPayee) return -1;
+
+            const newPayee = await this._payeeService.getPayeeById(dto.newPayeeId);
+            if (!newPayee) return -1;
+
+            if (oldPayee.transactions) {
+                const transactions = oldPayee.transactions;
+                transactions.forEach((t) => {
+                    t.payee = newPayee;
+                });
+                const result = await this._transactionRepository.save(transactions);
+                return result.length;
+            }
+            return 0;
+        } catch (e) {
+            this._logger.error('Exception when moving to new payee:', e);
+            return -1;
+        }
+    }
+
+    /**
      * Delete an existing transaction
      *
      * @param id
@@ -294,7 +323,7 @@ export class TransactionService {
             await this._transactionRepository.remove(transaction);
             return true;
         } catch (e) {
-            this._logger.error('Exception when deleting transaction', e);
+            this._logger.error('Exception when deleting transaction:', e);
             return false;
         }
     }

@@ -2,6 +2,7 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    Index,
     JoinColumn,
     ManyToOne,
     OneToMany,
@@ -18,13 +19,15 @@ export class Payee {
     @Column('text', {
         nullable: true,
     })
+    @Index({ unique: true })
     name: string | undefined;
 
     @ManyToOne(() => Category, {
         onDelete: 'SET NULL',
+        nullable: true,
     })
     @JoinColumn()
-    defaultCategory: Category | undefined;
+    defaultCategory: Category | undefined | null;
 
     @CreateDateColumn({
         type: 'timestamptz',
