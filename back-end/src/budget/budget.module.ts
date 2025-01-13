@@ -11,5 +11,6 @@ import { BudgetView } from './entities/budget.view';
     imports: [TypeOrmModule.forFeature([Budget, BudgetMonth, BudgetMonthCategory, BudgetView])],
     controllers: [BudgetController],
     providers: [BudgetService],
+    exports: [BudgetService],
 })
 export class BudgetModule {}

@@ -8,12 +8,8 @@ export class TransactionCategoryDto {
     @IsUUID()
     categoryId!: string;
 
-    @ApiProperty({
-        type: 'number',
-    })
-    @IsNumber({
-        maxDecimalPlaces: 2,
-    })
+    @ApiProperty({ type: 'number' })
+    @IsNumber({ maxDecimalPlaces: 2 })
     amount!: number;
 
     @ApiProperty()
@@ -38,12 +34,8 @@ export class CreateTransactionDto {
     @IsUUID()
     payeeId!: string;
 
-    @ApiProperty({
-        type: 'number',
-    })
-    @IsNumber({
-        maxDecimalPlaces: 2,
-    })
+    @ApiProperty({ type: 'number' })
+    @IsNumber({ maxDecimalPlaces: 2 })
     amount!: number;
 
     @ApiProperty({
@@ -52,9 +44,7 @@ export class CreateTransactionDto {
     })
     notes: string | undefined;
 
-    @ApiProperty({
-        enum: TransactionStatus,
-    })
+    @ApiProperty({ enum: TransactionStatus })
     @IsEnum(TransactionStatus)
     status!: TransactionStatus;
 

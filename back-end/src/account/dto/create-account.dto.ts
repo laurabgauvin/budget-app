@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber, IsString } from 'class-validator';
 import { AccountType } from '../entities/account.entity';
 
 export class CreateAccountDto {
@@ -7,13 +7,15 @@ export class CreateAccountDto {
     @IsString()
     name!: string;
 
-    @ApiProperty({
-        enum: AccountType,
-    })
+    @ApiProperty({ enum: AccountType })
     @IsEnum(AccountType)
     type!: AccountType;
 
     @ApiProperty()
     @IsBoolean()
     tracked!: boolean;
+
+    @ApiProperty({ type: 'number' })
+    @IsNumber({ maxDecimalPlaces: 2 })
+    balance: number | undefined;
 }

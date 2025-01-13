@@ -6,7 +6,7 @@ import { CategoryService } from '../category/category.service';
 import { CreatePayeeDto } from './dto/create-payee.dto';
 import { PayeeInfoDto } from './dto/payee-info.dto';
 import { UpdatePayeeDto } from './dto/update-payee.dto';
-import { Payee } from './entities/payee.entity';
+import { Payee, PayeeType } from './entities/payee.entity';
 
 @Injectable()
 export class PayeeService {
@@ -32,7 +32,7 @@ export class PayeeService {
                 return payees.map((c) => this._mapPayeeInfo(c));
             }
 
-            this._logger.warn('No payee found');
+            this._logger.log('No payee found');
             return [];
         } catch (e) {
             this._logger.error('Exception when getting all payees:', e);
@@ -77,7 +77,7 @@ export class PayeeService {
                 return this._mapPayeeInfo(payee);
             }
 
-            this._logger.warn(`Could not find payee: '${name}'`);
+            this._logger.log(`No payee found with name: '${name}'`);
             return null;
         } catch (e) {
             this._logger.error('Exception when getting the payee by name:', e);
@@ -121,6 +121,25 @@ export class PayeeService {
         } catch (e) {
             this._logger.error('Exception when getting the payee transaction count:', e);
             return -1;
+        }
+    }
+
+    /**
+     * Get the 'Starting Balance' payee
+     */
+    async getStartingBalancePayee(): Promise<Payee | null> {
+        try {
+            return await this._payeeRepository.findOne({
+                where: {
+                    type: PayeeType.StartingBalance,
+                },
+                relations: {
+                    defaultCategory: true,
+                },
+            });
+        } catch (e) {
+            this._logger.error('Exception when getting the starting balance payee:', e);
+            return null;
         }
     }
 
@@ -211,6 +230,7 @@ export class PayeeService {
             const payee = await this.getPayeeById(id);
             if (!payee) return true;
 
+            // Check for transactions
             if (payee.transactions && payee.transactions.length > 0) {
                 this._logger.error(
                     `Payee: '${payee.name}' cannot be deleted, it has ${payee.transactions.length} transactions`

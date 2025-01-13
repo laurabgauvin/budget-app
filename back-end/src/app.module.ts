@@ -10,9 +10,10 @@ import { BudgetView } from './budget/entities/budget.view';
 import { CategoryModule } from './category/category.module';
 import { Category } from './category/entities/category.entity';
 import { TransactionCategory } from './category/entities/transaction-category.entity';
+import { InsertDefaultValues1736724703103 } from './database/migrations/1736724703103-insert-default-values';
+import { NAMING_STRATEGY } from './database/naming-strategy';
 import { Payee } from './payee/entities/payee.entity';
 import { PayeeModule } from './payee/payee.module';
-import { NAMING_STRATEGY } from './shared/naming-strategy';
 import { Tag } from './tag/entities/tag.entity';
 import { TagModule } from './tag/tag.module';
 import { Transaction } from './transaction/entities/transaction.entity';
@@ -45,13 +46,15 @@ import { TransactionModule } from './transaction/transaction.module';
             subscribers: [TransactionSubscriber],
             // PROD: synchronize true should not be used in prod
             synchronize: true,
+            migrationsRun: true,
+            migrations: [InsertDefaultValues1736724703103],
         }),
-        TransactionModule,
+        AccountModule,
         BudgetModule,
         CategoryModule,
         PayeeModule,
-        AccountModule,
         TagModule,
+        TransactionModule,
     ],
     controllers: [],
     providers: [],

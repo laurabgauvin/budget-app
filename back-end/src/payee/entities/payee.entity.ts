@@ -11,6 +11,11 @@ import {
 import { Category } from '../../category/entities/category.entity';
 import { Transaction } from '../../transaction/entities/transaction.entity';
 
+export enum PayeeType {
+    UserDefined = 'user-defined',
+    StartingBalance = 'starting-balance',
+}
+
 @Entity()
 export class Payee {
     @PrimaryGeneratedColumn('uuid')
@@ -18,8 +23,8 @@ export class Payee {
 
     @Column('text', {
         nullable: true,
+        unique: true,
     })
-    @Index({ unique: true })
     name: string | undefined;
 
     @ManyToOne(() => Category, {
@@ -34,6 +39,15 @@ export class Payee {
         nullable: false,
     })
     createdDate!: Date;
+
+    @Column({
+        type: 'enum',
+        enum: PayeeType,
+        default: PayeeType.UserDefined,
+        nullable: false,
+    })
+    @Index({ unique: true, where: `type = '${PayeeType.StartingBalance}'` })
+    type!: PayeeType;
 
     @OneToMany(() => Transaction, (transaction) => transaction.payee)
     transactions: Transaction[] | undefined;

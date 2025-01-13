@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsRelations, Repository } from 'typeorm';
+import { DataSource, FindOptionsRelations, Repository } from 'typeorm';
 import { AccountService } from '../account/account.service';
 import { CategoryService } from '../category/category.service';
 import { PayeeService } from '../payee/payee.service';
@@ -32,8 +32,10 @@ export class TransactionService {
         private readonly _transactionRepository: Repository<Transaction>,
         private readonly _categoryService: CategoryService,
         private readonly _payeeService: PayeeService,
+        @Inject(forwardRef(() => AccountService))
         private readonly _accountService: AccountService,
-        private readonly _tagService: TagService
+        private readonly _tagService: TagService,
+        private readonly _dataSource: DataSource
     ) {}
 
     /**
@@ -169,7 +171,7 @@ export class TransactionService {
      */
     async createTransaction(transactionDto: CreateTransactionDto): Promise<string | null> {
         try {
-            const account = await this._accountService.getAccount(transactionDto.accountId);
+            const account = await this._accountService.getAccountById(transactionDto.accountId);
             if (!account) {
                 this._logger.error('Invalid account, cannot create transaction');
                 return null;
@@ -181,33 +183,54 @@ export class TransactionService {
                 return null;
             }
 
-            const valid = this._categoryService.validateTransactionCategories(
-                transactionDto.categories,
-                transactionDto.amount
-            );
-            if (!valid) {
-                this._logger.error('Invalid categories, cannot create transaction');
-                return null;
+            // TODO: don't need to do validation if account is not tracked, no categories
+            if (account.tracked) {
+                const valid = this._categoryService.validateTransactionCategories(
+                    transactionDto.categories,
+                    transactionDto.amount
+                );
+                if (!valid) {
+                    this._logger.error('Invalid categories, cannot create transaction');
+                    return null;
+                }
             }
 
-            // Create transaction
-            const transaction = new Transaction();
-            transaction.date = transactionDto.date;
-            transaction.account = account;
-            transaction.payee = payee;
-            transaction.totalAmount = transactionDto.amount;
-            transaction.notes = transactionDto.notes;
-            transaction.status = transactionDto.status;
-            transaction.tags = await this._tagService.getTagsById(transactionDto.tags);
-            await this._transactionRepository.save(transaction);
+            // Start DB transaction
+            const queryRunner = this._dataSource.createQueryRunner();
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
 
-            // Assign categories
-            await this._categoryService.createTransactionCategories(
-                transactionDto.categories,
-                transaction
-            );
+            // TODO: working on transaction, tran-cat throws exception
+            try {
+                // Create transaction
+                const transaction = new Transaction();
+                transaction.date = transactionDto.date;
+                transaction.account = account;
+                transaction.payee = payee;
+                transaction.totalAmount = transactionDto.amount;
+                transaction.notes = transactionDto.notes;
+                transaction.status = transactionDto.status;
+                transaction.tags = await this._tagService.getTagsById(transactionDto.tags);
+                await queryRunner.manager.save(transaction);
 
-            return transaction.transactionId;
+                // Assign categories
+                if (account.tracked) {
+                    const result =
+                        await this._categoryService.createTransactionCategoriesInDbTransaction(
+                            transactionDto.categories,
+                            transaction,
+                            queryRunner
+                        );
+                    if (result.length < transactionDto.categories.length)
+                        throw new Error('Error when creating transaction categories');
+                }
+
+                return transaction.transactionId;
+            } catch (e) {
+                this._logger.error('Exception when creating transaction, rolling back.', e);
+                await queryRunner.rollbackTransaction();
+                return null;
+            }
         } catch (e) {
             this._logger.error('Exception when creating transaction:', e);
             return null;
@@ -228,6 +251,7 @@ export class TransactionService {
                 return false;
             }
 
+            // TODO: don't need to do validation if account is not tracked, no categories
             const valid = this._categoryService.validateTransactionCategories(
                 transactionDto.categories,
                 transactionDto.amount
@@ -250,7 +274,7 @@ export class TransactionService {
                 transaction.account === undefined ||
                 transaction.account.accountId !== transactionDto.accountId
             ) {
-                const account = await this._accountService.getAccount(transactionDto.accountId);
+                const account = await this._accountService.getAccountById(transactionDto.accountId);
                 if (account) {
                     transaction.account = account;
                 }

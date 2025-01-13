@@ -29,6 +29,7 @@ export class Account {
 
     @Column('text', {
         nullable: true,
+        unique: true,
     })
     name: string | undefined;
 
@@ -38,7 +39,7 @@ export class Account {
         scale: 2,
         nullable: true,
     })
-    balance: number | undefined;
+    readonly balance: number | undefined;
 
     @Column({
         type: 'enum',

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { TransactionCategoryDto } from '../transaction/dto/create-transaction.dto';
 import { Transaction } from '../transaction/entities/transaction.entity';
 import { CategoryInfoDto } from './dto/category-info.dto';
@@ -155,6 +155,30 @@ export class CategoryService {
 
     /**
      * Create new `TransactionCategory` relations for the passed categories and transaction
+     * within a database transaction
+     *
+     * @param categories
+     * @param transaction
+     * @param queryRunner
+     */
+    async createTransactionCategoriesInDbTransaction(
+        categories: TransactionCategoryDto[],
+        transaction: Transaction,
+        queryRunner: QueryRunner
+    ): Promise<TransactionCategory[]> {
+        try {
+            // TODO: throws exception about missing payee_id?
+            return await queryRunner.manager.save(
+                await this._convertToTransactionCategory(categories, transaction)
+            );
+        } catch (e) {
+            this._logger.error('Exception when creating TransactionCategory:', e);
+            return [];
+        }
+    }
+
+    /**
+     * Create new `TransactionCategory` relations for the passed categories and transaction
      *
      * @param categories
      * @param transaction
@@ -163,21 +187,10 @@ export class CategoryService {
         categories: TransactionCategoryDto[],
         transaction: Transaction
     ): Promise<TransactionCategory[]> {
-        const transactionCategories: TransactionCategory[] = [];
         try {
-            for (const c of categories) {
-                const category = await this.getCategory(c.categoryId);
-                if (category) {
-                    const tranCat = new TransactionCategory();
-                    tranCat.transaction = transaction;
-                    tranCat.category = category;
-                    tranCat.notes = c.notes;
-                    tranCat.amount = c.amount;
-                    tranCat.order = c.order;
-                    transactionCategories.push(tranCat);
-                }
-            }
-            return await this._transactionCategoryRepository.save(transactionCategories);
+            return await this._transactionCategoryRepository.save(
+                await this._convertToTransactionCategory(categories, transaction)
+            );
         } catch (e) {
             this._logger.error('Exception when creating TransactionCategory:', e);
             return [];
@@ -339,5 +352,31 @@ export class CategoryService {
         }
 
         return { added, removed, updated };
+    }
+
+    /**
+     * Convert `TransactionCategoryDto` to `TransactionCategory`
+     *
+     * @param categories
+     * @param transaction
+     */
+    private async _convertToTransactionCategory(
+        categories: TransactionCategoryDto[],
+        transaction: Transaction
+    ): Promise<TransactionCategory[]> {
+        const transactionCategories: TransactionCategory[] = [];
+        for (const c of categories) {
+            const category = await this.getCategory(c.categoryId);
+            if (category) {
+                const tranCat = new TransactionCategory();
+                tranCat.transaction = transaction;
+                tranCat.category = category;
+                tranCat.notes = c.notes;
+                tranCat.amount = c.amount;
+                tranCat.order = c.order;
+                transactionCategories.push(tranCat);
+            }
+        }
+        return transactionCategories;
     }
 }
