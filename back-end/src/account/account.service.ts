@@ -1,10 +1,10 @@
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
+import { TransactionCategory } from '../category/entities/transaction-category.entity';
+import { DatabaseService } from '../database/database.service';
 import { PayeeService } from '../payee/payee.service';
-import { CreateTransactionDto } from '../transaction/dto/create-transaction.dto';
-import { TransactionStatus } from '../transaction/entities/transaction.entity';
-import { TransactionService } from '../transaction/transaction.service';
+import { Transaction } from '../transaction/entities/transaction.entity';
 import { AccountInfoDto } from './dto/account-info.dto';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
@@ -17,8 +17,8 @@ export class AccountService {
     constructor(
         @InjectRepository(Account)
         private readonly _accountRepository: Repository<Account>,
-        @Inject(forwardRef(() => TransactionService))
-        private readonly _transactionService: TransactionService,
+        private readonly _databaseService: DatabaseService,
+        private readonly _dataSource: DataSource,
         private readonly _payeeService: PayeeService
     ) {}
 
@@ -115,55 +115,60 @@ export class AccountService {
      * @param createAccountDto
      */
     async createAccount(createAccountDto: CreateAccountDto): Promise<string | null> {
-        try {
-            // Check if an account with that name already exists
-            const existingAccount = await this.getAccountInfoByName(createAccountDto.name);
-            if (existingAccount) {
-                this._logger.error(
-                    `An account with this name: '${createAccountDto.name}' already exists`
-                );
-                return null;
-            }
+        // Check if an account with that name already exists
+        const existingAccount = await this.getAccountInfoByName(createAccountDto.name);
+        if (existingAccount) {
+            this._logger.error(
+                `An account with this name: '${createAccountDto.name}' already exists`
+            );
+            return null;
+        }
 
+        // Start DB transaction
+        const queryRunner = this._dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
             // Create account
             const account = new Account();
             account.name = createAccountDto.name;
             account.type = createAccountDto.type;
             account.tracked = createAccountDto.tracked;
-            const db = await this._accountRepository.save(account);
+            const accountId = await this._databaseService.saveAccount(account, queryRunner);
+            if (!accountId) {
+                this._logger.error('Could not create Account record');
+                await queryRunner.rollbackTransaction();
+                return null;
+            }
 
-            // TODO: throws exception
-            // Create starter transaction
             if (createAccountDto.balance && createAccountDto.balance > 0) {
-                // Get default payee
+                // Create starter transaction
                 const defaultPayee = await this._payeeService.getStartingBalancePayee();
                 if (defaultPayee) {
-                    const starterTran = new CreateTransactionDto();
+                    const starterTran = new Transaction();
                     starterTran.date = new Date();
-                    starterTran.accountId = db.accountId;
-                    starterTran.payeeId = defaultPayee.payeeId;
-                    starterTran.amount = createAccountDto.balance;
-                    starterTran.notes = '';
-                    starterTran.status = TransactionStatus.Pending;
-                    if (account.tracked) {
-                        starterTran.categories = [
-                            {
-                                categoryId: defaultPayee.defaultCategory?.categoryId ?? '',
-                                amount: createAccountDto.balance,
-                                notes: '',
-                                order: 0,
-                            },
-                        ];
-                    }
-                    starterTran.tags = [];
+                    starterTran.account = account;
+                    starterTran.payee = defaultPayee;
+                    starterTran.totalAmount = createAccountDto.balance;
+                    await this._databaseService.saveTransaction(starterTran, queryRunner);
 
-                    await this._transactionService.createTransaction(starterTran);
+                    if (account.tracked && defaultPayee.defaultCategory) {
+                        const tranCat = new TransactionCategory();
+                        tranCat.transaction = starterTran;
+                        tranCat.category = defaultPayee.defaultCategory;
+                        tranCat.amount = createAccountDto.balance;
+                        tranCat.order = 0;
+                        await this._databaseService.saveTransactionCategory(tranCat, queryRunner);
+                    }
                 }
             }
 
-            return db.accountId;
+            await queryRunner.commitTransaction();
+            return accountId;
         } catch (e) {
-            this._logger.error('Exception when creating account:', e);
+            this._logger.error('Exception when creating account, rolling back.', e);
+            await queryRunner.rollbackTransaction();
             return null;
         }
     }
@@ -190,7 +195,7 @@ export class AccountService {
                 account.type = updateAccountDto.type;
                 account.tracked = updateAccountDto.tracked;
 
-                await this._accountRepository.save(account);
+                await this._databaseService.saveAccount(account);
                 return true;
             }
 
@@ -221,7 +226,7 @@ export class AccountService {
             }
 
             account.tracked = false;
-            await this._accountRepository.save(account);
+            await this._databaseService.saveAccount(account);
             await this._accountRepository.softRemove(account);
             return true;
         } catch (e) {

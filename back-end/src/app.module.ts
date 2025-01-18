@@ -10,8 +10,9 @@ import { BudgetView } from './budget/entities/budget.view';
 import { CategoryModule } from './category/category.module';
 import { Category } from './category/entities/category.entity';
 import { TransactionCategory } from './category/entities/transaction-category.entity';
+import { DatabaseModule } from './database/database.module';
 import { InsertDefaultValues1736724703103 } from './database/migrations/1736724703103-insert-default-values';
-import { NAMING_STRATEGY } from './database/naming-strategy';
+import { NAMING_STRATEGY } from './database/utilities/naming-strategy';
 import { Payee } from './payee/entities/payee.entity';
 import { PayeeModule } from './payee/payee.module';
 import { Tag } from './tag/entities/tag.entity';
@@ -55,6 +56,7 @@ import { TransactionModule } from './transaction/transaction.module';
         PayeeModule,
         TagModule,
         TransactionModule,
+        DatabaseModule,
     ],
     controllers: [],
     providers: [],

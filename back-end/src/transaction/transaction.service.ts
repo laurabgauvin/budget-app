@@ -1,8 +1,9 @@
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, FindOptionsRelations, Repository } from 'typeorm';
 import { AccountService } from '../account/account.service';
 import { CategoryService } from '../category/category.service';
+import { DatabaseService } from '../database/database.service';
 import { PayeeService } from '../payee/payee.service';
 import { TagService } from '../tag/tag.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
@@ -32,10 +33,10 @@ export class TransactionService {
         private readonly _transactionRepository: Repository<Transaction>,
         private readonly _categoryService: CategoryService,
         private readonly _payeeService: PayeeService,
-        @Inject(forwardRef(() => AccountService))
         private readonly _accountService: AccountService,
         private readonly _tagService: TagService,
-        private readonly _dataSource: DataSource
+        private readonly _dataSource: DataSource,
+        private readonly _databaseService: DatabaseService
     ) {}
 
     /**
@@ -177,15 +178,14 @@ export class TransactionService {
                 return null;
             }
 
-            const payee = await this._payeeService.getPayeeById(transactionDto.payeeId);
+            const payee = await this._payeeService.getPayeeById(transactionDto.payeeId, []);
             if (!payee) {
                 this._logger.error('Invalid payee, cannot create transaction');
                 return null;
             }
 
-            // TODO: don't need to do validation if account is not tracked, no categories
             if (account.tracked) {
-                const valid = this._categoryService.validateTransactionCategories(
+                const valid = await this._categoryService.validateTransactionCategories(
                     transactionDto.categories,
                     transactionDto.amount
                 );
@@ -200,7 +200,6 @@ export class TransactionService {
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
-            // TODO: working on transaction, tran-cat throws exception
             try {
                 // Create transaction
                 const transaction = new Transaction();
@@ -211,21 +210,35 @@ export class TransactionService {
                 transaction.notes = transactionDto.notes;
                 transaction.status = transactionDto.status;
                 transaction.tags = await this._tagService.getTagsById(transactionDto.tags);
-                await queryRunner.manager.save(transaction);
+                const transactionId = await this._databaseService.saveTransaction(
+                    transaction,
+                    queryRunner
+                );
+                if (!transactionId) {
+                    this._logger.error('Could not create Transaction record');
+                    await queryRunner.rollbackTransaction();
+                    return null;
+                }
 
                 // Assign categories
                 if (account.tracked) {
-                    const result =
-                        await this._categoryService.createTransactionCategoriesInDbTransaction(
+                    const transactionCategories =
+                        await this._categoryService.createTransactionCategories(
                             transactionDto.categories,
                             transaction,
                             queryRunner
                         );
-                    if (result.length < transactionDto.categories.length)
-                        throw new Error('Error when creating transaction categories');
+                    if (transactionCategories.length < transactionDto.categories.length) {
+                        this._logger.error(
+                            'Something went wrong when creating transaction categories'
+                        );
+                        await queryRunner.rollbackTransaction();
+                        return null;
+                    }
                 }
 
-                return transaction.transactionId;
+                await queryRunner.commitTransaction();
+                return transactionId;
             } catch (e) {
                 this._logger.error('Exception when creating transaction, rolling back.', e);
                 await queryRunner.rollbackTransaction();
@@ -251,14 +264,15 @@ export class TransactionService {
                 return false;
             }
 
-            // TODO: don't need to do validation if account is not tracked, no categories
-            const valid = this._categoryService.validateTransactionCategories(
-                transactionDto.categories,
-                transactionDto.amount
-            );
-            if (!valid) {
-                this._logger.error('Invalid categories, cannot update transaction');
-                return false;
+            if (transaction.account?.tracked) {
+                const valid = await this._categoryService.validateTransactionCategories(
+                    transactionDto.categories,
+                    transactionDto.amount
+                );
+                if (!valid) {
+                    this._logger.error('Invalid categories, cannot update transaction');
+                    return false;
+                }
             }
 
             // Update transaction information
@@ -282,7 +296,7 @@ export class TransactionService {
 
             // Update payee
             if (transaction.payee.payeeId !== transactionDto.payeeId) {
-                const payee = await this._payeeService.getPayeeById(transactionDto.payeeId);
+                const payee = await this._payeeService.getPayeeById(transactionDto.payeeId, []);
                 if (payee) {
                     transaction.payee = payee;
                 }
@@ -292,10 +306,12 @@ export class TransactionService {
             await this._transactionRepository.save(transaction);
 
             // Update categories
-            await this._categoryService.updateTransactionCategories(
-                transactionDto.categories,
-                transaction
-            );
+            if (transaction.account?.tracked) {
+                await this._categoryService.updateTransactionCategories(
+                    transactionDto.categories,
+                    transaction
+                );
+            }
 
             return true;
         } catch (e) {
@@ -311,10 +327,12 @@ export class TransactionService {
      */
     async moveToPayee(dto: MoveToPayeeDto): Promise<number> {
         try {
-            const oldPayee = await this._payeeService.getPayeeById(dto.oldPayeeId);
+            const oldPayee = await this._payeeService.getPayeeById(dto.oldPayeeId, [
+                'transactions',
+            ]);
             if (!oldPayee) return -1;
 
-            const newPayee = await this._payeeService.getPayeeById(dto.newPayeeId);
+            const newPayee = await this._payeeService.getPayeeById(dto.newPayeeId, []);
             if (!newPayee) return -1;
 
             if (oldPayee.transactions) {

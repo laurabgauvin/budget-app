@@ -8,6 +8,8 @@ import { PayeeInfoDto } from './dto/payee-info.dto';
 import { UpdatePayeeDto } from './dto/update-payee.dto';
 import { Payee, PayeeType } from './entities/payee.entity';
 
+export type PayeeRelation = 'defaultCategory' | 'transactions';
+
 @Injectable()
 export class PayeeService {
     private readonly _logger = new Logger(PayeeService.name);
@@ -24,6 +26,9 @@ export class PayeeService {
     async getAllPayeeInfos(): Promise<PayeeInfoDto[]> {
         try {
             const payees = await this._payeeRepository.find({
+                where: {
+                    type: PayeeType.UserDefined,
+                },
                 relations: {
                     defaultCategory: true,
                 },
@@ -47,7 +52,7 @@ export class PayeeService {
      */
     async getPayeeInfo(id: string): Promise<PayeeInfoDto | null> {
         try {
-            const payee = await this.getPayeeById(id);
+            const payee = await this.getPayeeById(id, ['defaultCategory']);
             if (payee) {
                 return this._mapPayeeInfo(payee);
             }
@@ -61,7 +66,7 @@ export class PayeeService {
     }
 
     /**
-     * Get a single payee `PayeeInfoDto` by name. Loads `DefaultCategory` relation
+     * Get a single payee `PayeeInfoDto` by name
      *
      * @param name
      */
@@ -86,20 +91,18 @@ export class PayeeService {
     }
 
     /**
-     * Get a single payee `Payee`. Loads `Transactions` and `DefaultCategory` relations
+     * Get a single payee `Payee`
      *
      * @param id
+     * @param loadRelations
      */
-    async getPayeeById(id: string): Promise<Payee | null> {
+    async getPayeeById(id: string, loadRelations: PayeeRelation[]): Promise<Payee | null> {
         try {
             return await this._payeeRepository.findOne({
                 where: {
                     payeeId: id,
                 },
-                relations: {
-                    transactions: true,
-                    defaultCategory: true,
-                },
+                relations: loadRelations,
             });
         } catch (e) {
             this._logger.error('Exception when getting the payee:', e);
@@ -114,7 +117,7 @@ export class PayeeService {
      */
     async getPayeeTransactionCount(id: string): Promise<number> {
         try {
-            const payee = await this.getPayeeById(id);
+            const payee = await this.getPayeeById(id, ['transactions']);
             if (!payee) return 0;
 
             return payee.transactions?.length ?? 0;
@@ -125,7 +128,7 @@ export class PayeeService {
     }
 
     /**
-     * Get the 'Starting Balance' payee
+     * Get the 'Starting Balance' payee. Loads `DefaultCategory` relation
      */
     async getStartingBalancePayee(): Promise<Payee | null> {
         try {
@@ -194,26 +197,31 @@ export class PayeeService {
                 return false;
             }
 
-            const payee = await this.getPayeeById(updatePayeeDto.payeeId);
-            if (payee) {
-                payee.name = updatePayeeDto.name;
-                if (isUUID(updatePayeeDto.defaultCategoryId)) {
-                    const category = await this._categoryService.getCategory(
-                        updatePayeeDto.defaultCategoryId
-                    );
-                    if (category) {
-                        payee.defaultCategory = category;
-                    }
-                } else {
-                    payee.defaultCategory = null;
-                }
-
-                await this._payeeRepository.save(payee);
-                return true;
+            const payee = await this.getPayeeById(updatePayeeDto.payeeId, ['defaultCategory']);
+            if (!payee) {
+                this._logger.warn(`Could not find payee: '${updatePayeeDto.payeeId}' to update`);
+                return false;
             }
 
-            this._logger.warn(`Could not find payee: '${updatePayeeDto.payeeId}' to update`);
-            return false;
+            if (payee.type === PayeeType.StartingBalance) {
+                this._logger.error('Cannot update default payee');
+                return false;
+            }
+
+            payee.name = updatePayeeDto.name;
+            if (isUUID(updatePayeeDto.defaultCategoryId)) {
+                const category = await this._categoryService.getCategory(
+                    updatePayeeDto.defaultCategoryId
+                );
+                if (category) {
+                    payee.defaultCategory = category;
+                }
+            } else {
+                payee.defaultCategory = null;
+            }
+
+            await this._payeeRepository.save(payee);
+            return true;
         } catch (e) {
             this._logger.error('Exception when updating payee:', e);
             return false;
@@ -227,8 +235,13 @@ export class PayeeService {
      */
     async deletePayee(id: string): Promise<boolean> {
         try {
-            const payee = await this.getPayeeById(id);
+            const payee = await this.getPayeeById(id, ['transactions']);
             if (!payee) return true;
+
+            if (payee.type === PayeeType.StartingBalance) {
+                this._logger.error('Cannot delete default payee');
+                return false;
+            }
 
             // Check for transactions
             if (payee.transactions && payee.transactions.length > 0) {

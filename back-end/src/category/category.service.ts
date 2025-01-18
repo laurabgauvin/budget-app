@@ -126,10 +126,10 @@ export class CategoryService {
      * @param categories
      * @param transactionAmount
      */
-    validateTransactionCategories(
+    async validateTransactionCategories(
         categories: TransactionCategoryDto[],
         transactionAmount: number
-    ): boolean {
+    ): Promise<boolean> {
         // Validate sum of categories matches total transaction amount
         const sum = categories.reduce((s, c) => s + c.amount, 0);
         if (sum !== transactionAmount) {
@@ -150,47 +150,40 @@ export class CategoryService {
             }
         }
 
+        // Validate all categories exist
+        for (const cat of categories) {
+            const category = await this.getCategory(cat.categoryId);
+            if (!category) {
+                this._logger.error(`Invalid category: ${cat.categoryId}`);
+                return false;
+            }
+        }
+
         return true;
     }
 
     /**
      * Create new `TransactionCategory` relations for the passed categories and transaction
-     * within a database transaction
      *
      * @param categories
      * @param transaction
      * @param queryRunner
      */
-    async createTransactionCategoriesInDbTransaction(
-        categories: TransactionCategoryDto[],
-        transaction: Transaction,
-        queryRunner: QueryRunner
-    ): Promise<TransactionCategory[]> {
-        try {
-            // TODO: throws exception about missing payee_id?
-            return await queryRunner.manager.save(
-                await this._convertToTransactionCategory(categories, transaction)
-            );
-        } catch (e) {
-            this._logger.error('Exception when creating TransactionCategory:', e);
-            return [];
-        }
-    }
-
-    /**
-     * Create new `TransactionCategory` relations for the passed categories and transaction
-     *
-     * @param categories
-     * @param transaction
-     */
     async createTransactionCategories(
         categories: TransactionCategoryDto[],
-        transaction: Transaction
+        transaction: Transaction,
+        queryRunner?: QueryRunner
     ): Promise<TransactionCategory[]> {
         try {
-            return await this._transactionCategoryRepository.save(
-                await this._convertToTransactionCategory(categories, transaction)
+            const transactionCategories = await this._convertToTransactionCategory(
+                categories,
+                transaction
             );
+
+            if (queryRunner) {
+                return await queryRunner.manager.save(transactionCategories);
+            }
+            return await this._transactionCategoryRepository.save(transactionCategories);
         } catch (e) {
             this._logger.error('Exception when creating TransactionCategory:', e);
             return [];

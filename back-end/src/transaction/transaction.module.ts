@@ -1,7 +1,8 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AccountModule } from '../account/account.module';
 import { CategoryModule } from '../category/category.module';
+import { DatabaseModule } from '../database/database.module';
 import { PayeeModule } from '../payee/payee.module';
 import { TagModule } from '../tag/tag.module';
 import { Transaction } from './entities/transaction.entity';
@@ -11,7 +12,8 @@ import { TransactionService } from './transaction.service';
 @Module({
     imports: [
         TypeOrmModule.forFeature([Transaction]),
-        forwardRef(() => AccountModule),
+        DatabaseModule,
+        AccountModule,
         CategoryModule,
         PayeeModule,
         TagModule,
