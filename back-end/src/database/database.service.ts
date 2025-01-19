@@ -1,83 +1,44 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { QueryRunner, Repository } from 'typeorm';
-import { Account } from '../account/entities/account.entity';
-import { TransactionCategory } from '../category/entities/transaction-category.entity';
-import { Transaction } from '../transaction/entities/transaction.entity';
+import { DataSource, QueryRunner } from 'typeorm';
 
 @Injectable()
 export class DatabaseService {
     private readonly _logger = new Logger(DatabaseService.name);
 
-    constructor(
-        @InjectRepository(Account)
-        private readonly _accountRepository: Repository<Account>,
-        @InjectRepository(Transaction)
-        private readonly _transactionRepository: Repository<Transaction>,
-        @InjectRepository(TransactionCategory)
-        private readonly _transactionCategoryRepository: Repository<TransactionCategory>
-    ) {}
+    constructor(private readonly _dataSource: DataSource) {}
 
     /**
-     * Create or update an `Account`
+     * Create or update a database record
      *
-     * @param account
-     * @param queryRunner Pass `QueryRunner` if performing operation within a DB transaction
-     * @returns accountId
+     * @param entity
+     * @param queryRunner
      */
-    async saveAccount(account: Account, queryRunner?: QueryRunner): Promise<string | null> {
+    async save<T>(entity: T, queryRunner?: QueryRunner): Promise<T | null> {
         try {
             if (queryRunner) {
-                return (await queryRunner.manager.save(account)).accountId;
+                return await queryRunner.manager.save(entity);
             }
-            return (await this._accountRepository.save(account)).accountId;
+            return await this._dataSource.manager.save(entity);
         } catch (e) {
-            this._logger.error('Exception when creating account:', e);
+            this._logger.error('Exception when creating entity:', e);
             return null;
         }
     }
 
     /**
-     * Create or update a `Transaction`
+     * Soft remove a database record
      *
-     * @param transaction
-     * @param queryRunner Pass `QueryRunner` if performing operation within a DB transaction
-     * @returns transactionId
+     * @param entity
+     * @param queryRunner
      */
-    async saveTransaction(
-        transaction: Transaction,
-        queryRunner?: QueryRunner
-    ): Promise<string | null> {
+    async softRemove<T>(entity: T, queryRunner?: QueryRunner): Promise<T | null> {
         try {
             if (queryRunner) {
-                return (await queryRunner.manager.save(transaction)).transactionId;
+                return await queryRunner.manager.softRemove(entity);
             }
-            return (await this._transactionRepository.save(transaction)).transactionId;
+            return await this._dataSource.manager.softRemove(entity);
         } catch (e) {
-            this._logger.error('Exception when creating transaction:', e);
-            return null;
-        }
-    }
-
-    /**
-     * Create or update a `TransactionCategory`
-     *
-     * @param transactionCategory
-     * @param queryRunner Pass `QueryRunner` if performing operation within a DB transaction
-     * @returns transactionCategoryId
-     */
-    async saveTransactionCategory(
-        transactionCategory: TransactionCategory,
-        queryRunner?: QueryRunner
-    ): Promise<number | null> {
-        try {
-            if (queryRunner) {
-                return (await queryRunner.manager.save(transactionCategory)).transactionCategoryId;
-            }
-            return (await this._transactionCategoryRepository.save(transactionCategory))
-                .transactionCategoryId;
-        } catch (e) {
-            this._logger.error('Exception when creating transaction category:', e);
+            this._logger.error('Exception when soft deleting entity:', e);
             return null;
         }
     }

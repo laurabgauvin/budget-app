@@ -135,8 +135,8 @@ export class AccountService {
             account.name = createAccountDto.name;
             account.type = createAccountDto.type;
             account.tracked = createAccountDto.tracked;
-            const accountId = await this._databaseService.saveAccount(account, queryRunner);
-            if (!accountId) {
+            await this._databaseService.save(account, queryRunner);
+            if (!account.accountId) {
                 this._logger.error('Could not create Account record');
                 await queryRunner.rollbackTransaction();
                 return null;
@@ -151,7 +151,7 @@ export class AccountService {
                     starterTran.account = account;
                     starterTran.payee = defaultPayee;
                     starterTran.totalAmount = createAccountDto.balance;
-                    await this._databaseService.saveTransaction(starterTran, queryRunner);
+                    await this._databaseService.save(starterTran, queryRunner);
 
                     if (account.tracked && defaultPayee.defaultCategory) {
                         const tranCat = new TransactionCategory();
@@ -159,13 +159,13 @@ export class AccountService {
                         tranCat.category = defaultPayee.defaultCategory;
                         tranCat.amount = createAccountDto.balance;
                         tranCat.order = 0;
-                        await this._databaseService.saveTransactionCategory(tranCat, queryRunner);
+                        await this._databaseService.save(tranCat, queryRunner);
                     }
                 }
             }
 
             await queryRunner.commitTransaction();
-            return accountId;
+            return account.accountId;
         } catch (e) {
             this._logger.error('Exception when creating account, rolling back.', e);
             await queryRunner.rollbackTransaction();
@@ -195,7 +195,7 @@ export class AccountService {
                 account.type = updateAccountDto.type;
                 account.tracked = updateAccountDto.tracked;
 
-                await this._databaseService.saveAccount(account);
+                await this._databaseService.save(account);
                 return true;
             }
 
@@ -226,8 +226,8 @@ export class AccountService {
             }
 
             account.tracked = false;
-            await this._databaseService.saveAccount(account);
-            await this._accountRepository.softRemove(account);
+            await this._databaseService.save(account);
+            await this._databaseService.softRemove(account);
             return true;
         } catch (e) {
             this._logger.error('Exception when deleting account:', e);

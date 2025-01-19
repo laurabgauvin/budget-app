@@ -210,11 +210,8 @@ export class TransactionService {
                 transaction.notes = transactionDto.notes;
                 transaction.status = transactionDto.status;
                 transaction.tags = await this._tagService.getTagsById(transactionDto.tags);
-                const transactionId = await this._databaseService.saveTransaction(
-                    transaction,
-                    queryRunner
-                );
-                if (!transactionId) {
+                await this._databaseService.save(transaction, queryRunner);
+                if (!transaction.transactionId) {
                     this._logger.error('Could not create Transaction record');
                     await queryRunner.rollbackTransaction();
                     return null;
@@ -238,7 +235,7 @@ export class TransactionService {
                 }
 
                 await queryRunner.commitTransaction();
-                return transactionId;
+                return transaction.transactionId;
             } catch (e) {
                 this._logger.error('Exception when creating transaction, rolling back.', e);
                 await queryRunner.rollbackTransaction();
