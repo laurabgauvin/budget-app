@@ -1,5 +1,6 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { BudgetMonthCategory } from '../../budget/entities/budget-month-category.entity';
+import { Goal } from '../../goal/entities/goal.entity';
 import { TransactionCategory } from './transaction-category.entity';
 
 @Entity()
@@ -23,4 +24,7 @@ export class Category {
 
     @OneToMany(() => TransactionCategory, (transactionCategory) => transactionCategory.category)
     transactionCategories: TransactionCategory[] | undefined;
+
+    @OneToMany(() => Goal, (goal) => goal.category)
+    goals: Goal[] | undefined;
 }

@@ -11,8 +11,11 @@ import { CategoryModule } from './category/category.module';
 import { Category } from './category/entities/category.entity';
 import { TransactionCategory } from './category/entities/transaction-category.entity';
 import { DatabaseModule } from './database/database.module';
+import { Schedule } from './database/entities/schedule.entity';
 import { InsertDefaultValues1736724703103 } from './database/migrations/1736724703103-insert-default-values';
 import { NAMING_STRATEGY } from './database/utilities/naming-strategy';
+import { Goal } from './goal/entities/goal.entity';
+import { GoalModule } from './goal/goal.module';
 import { Payee } from './payee/entities/payee.entity';
 import { PayeeModule } from './payee/payee.module';
 import { Tag } from './tag/entities/tag.entity';
@@ -38,7 +41,9 @@ import { TransactionModule } from './transaction/transaction.module';
                 BudgetMonthCategory,
                 BudgetView,
                 Category,
+                Goal,
                 Payee,
+                Schedule,
                 Tag,
                 Transaction,
                 TransactionCategory,
@@ -53,6 +58,7 @@ import { TransactionModule } from './transaction/transaction.module';
         AccountModule,
         BudgetModule,
         CategoryModule,
+        GoalModule,
         PayeeModule,
         TagModule,
         TransactionModule,
