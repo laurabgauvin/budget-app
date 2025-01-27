@@ -8,6 +8,7 @@ import {
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Category } from '../../category/entities/category.entity';
+import { ColumnNumericTransformer } from '../../database/utilities/column-numeric.transformer';
 import { BudgetMonth } from './budget-month.entity';
 
 @Entity()
@@ -39,6 +40,7 @@ export class BudgetMonthCategory {
         precision: 15,
         scale: 2,
         nullable: true,
+        transformer: new ColumnNumericTransformer(),
     })
     amountBudgeted: number | undefined;
 

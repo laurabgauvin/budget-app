@@ -323,7 +323,7 @@ export class CategoryService {
             const modified = newList[j];
 
             const categoryChanged = existing.category.categoryId !== modified.categoryId;
-            const amountChanged = Number(existing.amount) !== modified.amount;
+            const amountChanged = existing.amount !== modified.amount;
             const notesChanged = (existing.notes ?? '') !== modified.notes;
 
             if (categoryChanged || amountChanged || notesChanged) {

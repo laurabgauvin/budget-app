@@ -12,6 +12,7 @@ import {
 } from 'typeorm';
 import { Account } from '../../account/entities/account.entity';
 import { TransactionCategory } from '../../category/entities/transaction-category.entity';
+import { ColumnNumericTransformer } from '../../database/utilities/column-numeric.transformer';
 import { Payee } from '../../payee/entities/payee.entity';
 import { Tag } from '../../tag/entities/tag.entity';
 
@@ -56,6 +57,7 @@ export class Transaction {
         precision: 15,
         scale: 2,
         nullable: true,
+        transformer: new ColumnNumericTransformer(),
     })
     totalAmount: number | undefined;
 

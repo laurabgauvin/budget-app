@@ -7,6 +7,7 @@ import {
     ManyToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ColumnNumericTransformer } from '../../database/utilities/column-numeric.transformer';
 import { Transaction } from '../../transaction/entities/transaction.entity';
 import { Category } from './category.entity';
 
@@ -41,6 +42,7 @@ export class TransactionCategory {
         precision: 15,
         scale: 2,
         nullable: true,
+        transformer: new ColumnNumericTransformer(),
     })
     amount: number | undefined;
 

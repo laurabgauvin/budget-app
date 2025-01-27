@@ -274,7 +274,7 @@ export class TransactionService {
 
             // Update transaction information
             transaction.date = transactionDto.date;
-            if (Number(transaction.totalAmount) !== transactionDto.amount)
+            if (transaction.totalAmount !== transactionDto.amount)
                 transaction.totalAmount = transactionDto.amount;
             transaction.notes = transactionDto.notes;
             transaction.status = transactionDto.status;

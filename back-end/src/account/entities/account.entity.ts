@@ -7,6 +7,7 @@ import {
     OneToMany,
     PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ColumnNumericTransformer } from '../../database/utilities/column-numeric.transformer';
 import { Transaction } from '../../transaction/entities/transaction.entity';
 
 export enum AccountType {
@@ -38,6 +39,7 @@ export class Account {
         precision: 15,
         scale: 2,
         nullable: true,
+        transformer: new ColumnNumericTransformer(),
     })
     readonly balance: number | undefined;
 
