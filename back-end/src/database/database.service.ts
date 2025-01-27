@@ -13,7 +13,7 @@ export class DatabaseService {
      * @param entity
      * @param queryRunner
      */
-    async save<T>(entity: T, queryRunner?: QueryRunner): Promise<T | null> {
+    async save<Entity>(entity: Entity, queryRunner?: QueryRunner): Promise<Entity | null> {
         try {
             if (queryRunner) {
                 return await queryRunner.manager.save(entity);
@@ -26,12 +26,30 @@ export class DatabaseService {
     }
 
     /**
+     * Remove a database record
+     *
+     * @param entity
+     * @param queryRunner
+     */
+    async remove<Entity>(entity: Entity, queryRunner?: QueryRunner): Promise<Entity | null> {
+        try {
+            if (queryRunner) {
+                return await queryRunner.manager.remove(entity);
+            }
+            return await this._dataSource.manager.remove(entity);
+        } catch (e) {
+            this._logger.error('Exception when removing entity:', e);
+            return null;
+        }
+    }
+
+    /**
      * Soft remove a database record
      *
      * @param entity
      * @param queryRunner
      */
-    async softRemove<T>(entity: T, queryRunner?: QueryRunner): Promise<T | null> {
+    async softRemove<Entity>(entity: Entity, queryRunner?: QueryRunner): Promise<Entity | null> {
         try {
             if (queryRunner) {
                 return await queryRunner.manager.softRemove(entity);

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryRunner, Repository } from 'typeorm';
+import { DatabaseService } from '../database/database.service';
 import { TransactionCategoryDto } from '../transaction/dto/create-transaction.dto';
 import { Transaction } from '../transaction/entities/transaction.entity';
 import { CategoryInfoDto } from './dto/category-info.dto';
@@ -30,7 +31,8 @@ export class CategoryService {
         @InjectRepository(Category)
         private readonly _categoryRepository: Repository<Category>,
         @InjectRepository(TransactionCategory)
-        private readonly _transactionCategoryRepository: Repository<TransactionCategory>
+        private readonly _transactionCategoryRepository: Repository<TransactionCategory>,
+        private readonly _databaseService: DatabaseService
     ) {}
 
     /**
@@ -42,9 +44,11 @@ export class CategoryService {
             if (categories.length > 0) {
                 return categories.map((c) => this._mapCategoryInfo(c));
             }
+
+            this._logger.log('No categories found');
             return [];
         } catch (e) {
-            this._logger.error('Exception when getting all Category:', e);
+            this._logger.error('Exception when getting all categories:', e);
             return [];
         }
     }
@@ -60,9 +64,11 @@ export class CategoryService {
             if (category) {
                 return this._mapCategoryInfo(category);
             }
+
+            this._logger.warn(`Could not find category ${id}`);
             return null;
         } catch (e) {
-            this._logger.error('Exception when getting Category:', e);
+            this._logger.error(`Exception when getting category ${id}:`, e);
             return null;
         }
     }
@@ -76,7 +82,7 @@ export class CategoryService {
         try {
             return await this._categoryRepository.findOneBy({ categoryId: id });
         } catch (e) {
-            this._logger.error('Exception when reading Category:', e);
+            this._logger.error(`Exception when reading category ${id}:`, e);
             return null;
         }
     }
@@ -91,10 +97,13 @@ export class CategoryService {
             const category = new Category();
             category.name = createCategoryDto.name;
 
-            const db = await this._categoryRepository.save(category);
-            return db.categoryId;
+            const db = await this._databaseService.save(category);
+            if (db) return db.categoryId;
+
+            this._logger.error(`Could not create category: ${category.name}`);
+            return null;
         } catch (e) {
-            this._logger.error('Exception when creating Category:', e);
+            this._logger.error('Exception when creating category:', e);
             return null;
         }
     }
@@ -110,12 +119,14 @@ export class CategoryService {
             if (category) {
                 category.name = updateCategoryDto.name;
 
-                await this._categoryRepository.save(category);
+                await this._databaseService.save(category);
                 return true;
             }
+
+            this._logger.warn(`Could not find category to update: ${updateCategoryDto.categoryId}`);
             return false;
         } catch (e) {
-            this._logger.error('Exception when updating Category:', e);
+            this._logger.error('Exception when updating category:', e);
             return false;
         }
     }
@@ -152,8 +163,7 @@ export class CategoryService {
 
         // Validate all categories exist
         for (const cat of categories) {
-            const category = await this.getCategory(cat.categoryId);
-            if (!category) {
+            if (!(await this.getCategory(cat.categoryId))) {
                 this._logger.error(`Invalid category: ${cat.categoryId}`);
                 return false;
             }
@@ -175,17 +185,22 @@ export class CategoryService {
         queryRunner?: QueryRunner
     ): Promise<TransactionCategory[]> {
         try {
-            const transactionCategories = await this._convertToTransactionCategory(
-                categories,
-                transaction
-            );
-
-            if (queryRunner) {
-                return await queryRunner.manager.save(transactionCategories);
+            const transactionCategories: TransactionCategory[] = [];
+            for (const c of categories) {
+                const category = await this.getCategory(c.categoryId);
+                if (category) {
+                    const tranCat = new TransactionCategory();
+                    tranCat.transaction = transaction;
+                    tranCat.category = category;
+                    tranCat.notes = c.notes;
+                    tranCat.amount = c.amount;
+                    tranCat.order = c.order;
+                    transactionCategories.push(tranCat);
+                }
             }
-            return await this._transactionCategoryRepository.save(transactionCategories);
+            return (await this._databaseService.save(transactionCategories, queryRunner)) ?? [];
         } catch (e) {
-            this._logger.error('Exception when creating TransactionCategory:', e);
+            this._logger.error('Exception when creating TransactionCategories:', e);
             return [];
         }
     }
@@ -195,10 +210,12 @@ export class CategoryService {
      *
      * @param categories
      * @param transaction
+     * @param queryRunner
      */
     async updateTransactionCategories(
         categories: TransactionCategoryDto[],
-        transaction: Transaction
+        transaction: Transaction,
+        queryRunner?: QueryRunner
     ): Promise<TransactionCategory[]> {
         try {
             // Get the changes to make
@@ -209,7 +226,7 @@ export class CategoryService {
 
             // Delete removed categories
             if (compare.removed.length > 0)
-                await this._transactionCategoryRepository.remove(compare.removed);
+                await this._databaseService.remove(compare.removed, queryRunner);
 
             // Update categories
             if (compare.updated.length > 0) {
@@ -237,12 +254,12 @@ export class CategoryService {
                     }
                 }
 
-                await this._transactionCategoryRepository.save(updatedList);
+                await this._databaseService.save(updatedList, queryRunner);
             }
 
             // Add new categories
             if (compare.added.length > 0)
-                await this.createTransactionCategories(compare.added, transaction);
+                await this.createTransactionCategories(compare.added, transaction, queryRunner);
 
             // Return updated list
             const update =
@@ -255,7 +272,7 @@ export class CategoryService {
                   })
                 : transactionCategories;
         } catch (e) {
-            this._logger.error('Exception when updating TransactionCategory:', e);
+            this._logger.error('Exception when updating TransactionCategories:', e);
             return [];
         }
     }
@@ -291,7 +308,9 @@ export class CategoryService {
             order: {
                 order: 'asc',
             },
-            relations: ['category'],
+            relations: {
+                category: true,
+            },
         });
     }
 
@@ -345,31 +364,5 @@ export class CategoryService {
         }
 
         return { added, removed, updated };
-    }
-
-    /**
-     * Convert `TransactionCategoryDto` to `TransactionCategory`
-     *
-     * @param categories
-     * @param transaction
-     */
-    private async _convertToTransactionCategory(
-        categories: TransactionCategoryDto[],
-        transaction: Transaction
-    ): Promise<TransactionCategory[]> {
-        const transactionCategories: TransactionCategory[] = [];
-        for (const c of categories) {
-            const category = await this.getCategory(c.categoryId);
-            if (category) {
-                const tranCat = new TransactionCategory();
-                tranCat.transaction = transaction;
-                tranCat.category = category;
-                tranCat.notes = c.notes;
-                tranCat.amount = c.amount;
-                tranCat.order = c.order;
-                transactionCategories.push(tranCat);
-            }
-        }
-        return transactionCategories;
     }
 }
