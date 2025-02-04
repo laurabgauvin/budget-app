@@ -23,6 +23,8 @@ interface CompareTransactionCategories {
     updated: UpdatedCategoryInfo[];
 }
 
+export type CategoryRelations = 'budgetMonths' | 'transactionCategories' | 'goals';
+
 @Injectable()
 export class CategoryService {
     private readonly _logger = new Logger(CategoryService.name);
@@ -60,7 +62,7 @@ export class CategoryService {
      */
     async getCategoryInfo(id: string): Promise<CategoryInfoDto | null> {
         try {
-            const category = await this.getCategory(id);
+            const category = await this.getCategoryById(id);
             if (category) {
                 return this._mapCategoryInfo(category);
             }
@@ -77,12 +79,43 @@ export class CategoryService {
      * Get a single category `Category`
      *
      * @param id
+     * @param loadRelations
      */
-    async getCategory(id: string): Promise<Category | null> {
+    async getCategoryById(
+        id: string,
+        loadRelations: CategoryRelations[] = []
+    ): Promise<Category | null> {
         try {
-            return await this._categoryRepository.findOneBy({ categoryId: id });
+            return await this._categoryRepository.findOne({
+                where: {
+                    categoryId: id,
+                },
+                relations: loadRelations,
+            });
         } catch (e) {
             this._logger.error(`Exception when reading category ${id}:`, e);
+            return null;
+        }
+    }
+
+    /**
+     * Get a `Category` by name
+     *
+     * @param name
+     */
+    async getCategoryByName(name: string): Promise<Category | null> {
+        try {
+            const category = await this._categoryRepository.findOne({
+                where: {
+                    name: name,
+                },
+            });
+            if (category) return category;
+
+            this._logger.log(`No category found with name: '${name}'`);
+            return null;
+        } catch (e) {
+            this._logger.error('Exception when getting the category by name:', e);
             return null;
         }
     }
@@ -94,6 +127,15 @@ export class CategoryService {
      */
     async createCategory(createCategoryDto: CreateCategoryDto): Promise<string | null> {
         try {
+            // Check if a category with that name already exists
+            const existingCategory = await this.getCategoryByName(createCategoryDto.name);
+            if (existingCategory) {
+                this._logger.error(
+                    `A category with this name: '${createCategoryDto.name}' already exists`
+                );
+                return null;
+            }
+
             const category = new Category();
             category.name = createCategoryDto.name;
 
@@ -115,8 +157,24 @@ export class CategoryService {
      */
     async updateCategory(updateCategoryDto: UpdateCategoryDto): Promise<boolean> {
         try {
-            const category = await this.getCategory(updateCategoryDto.categoryId);
+            // Check if a category with that name already exists
+            const existingCategory = await this.getCategoryByName(updateCategoryDto.name);
+            if (existingCategory) {
+                this._logger.error(
+                    `A category with this name: '${updateCategoryDto.name}' already exists`
+                );
+                return false;
+            }
+
+            const category = await this.getCategoryById(updateCategoryDto.categoryId);
             if (category) {
+                if (!category.isEditable) {
+                    this._logger.error(
+                        `The category: '${updateCategoryDto.name}' may not be edited`
+                    );
+                    return false;
+                }
+
                 category.name = updateCategoryDto.name;
 
                 await this._databaseService.save(category);
@@ -127,6 +185,40 @@ export class CategoryService {
             return false;
         } catch (e) {
             this._logger.error('Exception when updating category:', e);
+            return false;
+        }
+    }
+
+    /**
+     * Delete an existing category
+     *
+     * @param id
+     */
+    async deleteCategory(id: string): Promise<boolean> {
+        try {
+            const category = await this.getCategoryById(id, ['transactionCategories']);
+            if (!category) {
+                this._logger.log(`Could not find category to delete: ${id}`);
+                return true;
+            }
+
+            if (!category.isEditable) {
+                this._logger.error(`The category: '${category.name}' may not be deleted`);
+                return false;
+            }
+
+            // Check for transactions
+            if (category.transactionCategories && category.transactionCategories.length > 0) {
+                this._logger.error(
+                    `Category: '${category.name}' cannot be deleted, it has ${category.transactionCategories.length} transactions`
+                );
+                return false;
+            }
+
+            await this._databaseService.remove(category);
+            return true;
+        } catch (e) {
+            this._logger.error('Exception when deleting category:', e);
             return false;
         }
     }
@@ -163,7 +255,7 @@ export class CategoryService {
 
         // Validate all categories exist
         for (const cat of categories) {
-            if (!(await this.getCategory(cat.categoryId))) {
+            if (!(await this.getCategoryById(cat.categoryId))) {
                 this._logger.error(`Invalid category: ${cat.categoryId}`);
                 return false;
             }
@@ -187,7 +279,7 @@ export class CategoryService {
         try {
             const transactionCategories: TransactionCategory[] = [];
             for (const c of categories) {
-                const category = await this.getCategory(c.categoryId);
+                const category = await this.getCategoryById(c.categoryId);
                 if (category) {
                     const tranCat = new TransactionCategory();
                     tranCat.transaction = transaction;
@@ -238,7 +330,7 @@ export class CategoryService {
                     if (transactionCategory) {
                         // Update category
                         if (updated.categoryChanged) {
-                            const newCategory = await this.getCategory(updated.dto.categoryId);
+                            const newCategory = await this.getCategoryById(updated.dto.categoryId);
                             if (newCategory) {
                                 transactionCategory.category = newCategory;
                             }
@@ -290,6 +382,7 @@ export class CategoryService {
         return {
             categoryId: category.categoryId,
             name: category.name,
+            isEditable: category.isEditable,
         };
     }
 

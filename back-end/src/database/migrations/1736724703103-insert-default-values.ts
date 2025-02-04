@@ -15,8 +15,8 @@ export class InsertDefaultValues1736724703103 implements MigrationInterface {
                 WHERE "name" = 'Income'
             ),
             new_category AS (
-                INSERT INTO "category" ("name")
-                SELECT 'Income'
+                INSERT INTO "category" ("name", "is_editable")
+                SELECT 'Income', false
                 WHERE (SELECT category_count FROM existing_category_check) = 0
                 RETURNING "category_id"
             )

@@ -8,10 +8,19 @@ export class Category {
     @PrimaryGeneratedColumn('uuid')
     categoryId!: string;
 
-    @Column('text', {
+    @Column({
+        type: 'text',
         nullable: true,
+        unique: true,
     })
     name: string | undefined;
+
+    @Column({
+        type: 'boolean',
+        default: true,
+        nullable: false,
+    })
+    isEditable!: boolean;
 
     @CreateDateColumn({
         type: 'timestamptz',

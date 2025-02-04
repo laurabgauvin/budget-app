@@ -165,7 +165,7 @@ export class PayeeService {
             const payee = new Payee();
             payee.name = createPayeeDto.name;
             if (isUUID(createPayeeDto.defaultCategoryId)) {
-                const category = await this._categoryService.getCategory(
+                const category = await this._categoryService.getCategoryById(
                     createPayeeDto.defaultCategoryId
                 );
                 if (category) {
@@ -210,7 +210,7 @@ export class PayeeService {
 
             payee.name = updatePayeeDto.name;
             if (isUUID(updatePayeeDto.defaultCategoryId)) {
-                const category = await this._categoryService.getCategory(
+                const category = await this._categoryService.getCategoryById(
                     updatePayeeDto.defaultCategoryId
                 );
                 if (category) {

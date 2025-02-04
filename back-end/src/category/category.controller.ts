@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CategoryService } from './category.service';
 import { CategoryInfoDto } from './dto/category-info.dto';
@@ -16,7 +16,7 @@ export class CategoryController {
     }
 
     @Get(':id')
-    getCategoryById(@Param('id') id: string): Promise<CategoryInfoDto | null> {
+    getCategoryById(@Param('id', ParseUUIDPipe) id: string): Promise<CategoryInfoDto | null> {
         return this._categoryService.getCategoryInfo(id);
     }
 
@@ -28,5 +28,10 @@ export class CategoryController {
     @Put()
     updateCategory(@Body() dto: UpdateCategoryDto): Promise<boolean> {
         return this._categoryService.updateCategory(dto);
+    }
+
+    @Delete(':id')
+    deleteCategory(@Param('id', ParseUUIDPipe) id: string): Promise<boolean> {
+        return this._categoryService.deleteCategory(id);
     }
 }
