@@ -300,7 +300,7 @@ export class TransactionService {
             }
 
             // Save changes
-            await this._transactionRepository.save(transaction);
+            await this._databaseService.save(transaction);
 
             // Update categories
             if (transaction.account?.tracked) {
@@ -337,8 +337,8 @@ export class TransactionService {
                 transactions.forEach((t) => {
                     t.payee = newPayee;
                 });
-                const result = await this._transactionRepository.save(transactions);
-                return result.length;
+                const result = await this._databaseService.save(transactions);
+                return result?.length ?? 0;
             }
             return 0;
         } catch (e) {
@@ -359,7 +359,7 @@ export class TransactionService {
             });
             if (!transaction) return true;
 
-            await this._transactionRepository.remove(transaction);
+            await this._databaseService.remove(transaction);
             return true;
         } catch (e) {
             this._logger.error('Exception when deleting transaction:', e);
