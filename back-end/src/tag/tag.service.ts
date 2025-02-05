@@ -100,7 +100,11 @@ export class TagService {
             tag.color = createTagDto.color;
             tag.show = createTagDto.show;
 
-            const db = await this._tagRepository.save(tag);
+            const db = await this._databaseService.save(tag);
+            if (!db) {
+                this._logger.error('Something went wrong when creating the tag');
+                return null;
+            }
             return db.tagId;
         } catch (e) {
             this._logger.error('Exception when creating tag:', e);

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { isUUID } from 'class-validator';
 import { Repository } from 'typeorm';
 import { CategoryService } from '../category/category.service';
+import { DatabaseService } from '../database/database.service';
 import { CreatePayeeDto } from './dto/create-payee.dto';
 import { PayeeInfoDto } from './dto/payee-info.dto';
 import { UpdatePayeeDto } from './dto/update-payee.dto';
@@ -17,7 +18,8 @@ export class PayeeService {
     constructor(
         @InjectRepository(Payee)
         private readonly _payeeRepository: Repository<Payee>,
-        private readonly _categoryService: CategoryService
+        private readonly _categoryService: CategoryService,
+        private readonly _databaseService: DatabaseService
     ) {}
 
     /**
@@ -173,7 +175,11 @@ export class PayeeService {
                 }
             }
 
-            const db = await this._payeeRepository.save(payee);
+            const db = await this._databaseService.save(payee);
+            if (!db) {
+                this._logger.error('Something went wrong when creating the payee');
+                return null;
+            }
             return db.payeeId;
         } catch (e) {
             this._logger.error('Exception when creating payee:', e);
@@ -208,6 +214,11 @@ export class PayeeService {
                 return false;
             }
 
+            if (!payee.isEditable) {
+                this._logger.error(`This payee: '${payee.name}' cannot be edited`);
+                return false;
+            }
+
             payee.name = updatePayeeDto.name;
             if (isUUID(updatePayeeDto.defaultCategoryId)) {
                 const category = await this._categoryService.getCategoryById(
@@ -220,7 +231,7 @@ export class PayeeService {
                 payee.defaultCategory = null;
             }
 
-            await this._payeeRepository.save(payee);
+            await this._databaseService.save(payee);
             return true;
         } catch (e) {
             this._logger.error('Exception when updating payee:', e);
@@ -243,6 +254,11 @@ export class PayeeService {
                 return false;
             }
 
+            if (!payee.isEditable) {
+                this._logger.error(`This payee: '${payee.name}' cannot be edited`);
+                return false;
+            }
+
             // Check for transactions
             if (payee.transactions && payee.transactions.length > 0) {
                 this._logger.error(
@@ -251,7 +267,7 @@ export class PayeeService {
                 return false;
             }
 
-            await this._payeeRepository.remove(payee);
+            await this._databaseService.remove(payee);
             return true;
         } catch (e) {
             this._logger.error('Exception when deleting payee:', e);
