@@ -14,10 +14,32 @@ export class Tag {
     @PrimaryGeneratedColumn('uuid')
     tagId!: string;
 
-    @Column('text', {
+    @Column({
+        type: 'text',
         nullable: true,
+        unique: true,
     })
     name: string | undefined;
+
+    @Column({
+        type: 'boolean',
+        default: true,
+        nullable: false,
+    })
+    isEditable!: boolean;
+
+    @Column({
+        type: 'boolean',
+        default: true,
+        nullable: false,
+    })
+    show!: boolean;
+
+    @Column({
+        type: 'text',
+        nullable: true,
+    })
+    color: string | undefined;
 
     @CreateDateColumn({
         type: 'timestamptz',

@@ -34,11 +34,12 @@ export class Payee {
     @JoinColumn()
     defaultCategory: Category | undefined | null;
 
-    @CreateDateColumn({
-        type: 'timestamptz',
+    @Column({
+        type: 'boolean',
+        default: true,
         nullable: false,
     })
-    createdDate!: Date;
+    isEditable!: boolean;
 
     @Column({
         type: 'enum',
@@ -48,6 +49,12 @@ export class Payee {
     })
     @Index({ unique: true, where: `type = '${PayeeType.StartingBalance}'` })
     type!: PayeeType;
+
+    @CreateDateColumn({
+        type: 'timestamptz',
+        nullable: false,
+    })
+    createdDate!: Date;
 
     @OneToMany(() => Transaction, (transaction) => transaction.payee)
     transactions: Transaction[] | undefined;

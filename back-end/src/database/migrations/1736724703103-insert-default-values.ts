@@ -20,8 +20,8 @@ export class InsertDefaultValues1736724703103 implements MigrationInterface {
                 WHERE (SELECT category_count FROM existing_category_check) = 0
                 RETURNING "category_id"
             )
-            INSERT INTO "payee" ("name", "type", "category_id")
-            SELECT 'Starting Balance', 'starting-balance', category_id
+            INSERT INTO "payee" ("name", "type", "is_editable", "category_id")
+            SELECT 'Starting Balance', 'starting-balance', false, category_id
             FROM new_category
             WHERE (SELECT payee_count FROM existing_payee_check) = 0;
             `

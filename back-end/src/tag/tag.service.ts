@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
+import { DatabaseService } from '../database/database.service';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { TagInfoDto } from './dto/tag-info.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
@@ -12,7 +13,8 @@ export class TagService {
 
     constructor(
         @InjectRepository(Tag)
-        private readonly _tagRepository: Repository<Tag>
+        private readonly _tagRepository: Repository<Tag>,
+        private readonly _databaseService: DatabaseService
     ) {}
 
     /**
@@ -28,6 +30,8 @@ export class TagService {
             if (tags.length > 0) {
                 return tags.map((t) => this._mapTagInfo(t));
             }
+
+            this._logger.log('No tags found');
             return [];
         } catch (e) {
             this._logger.error('Exception when getting all tags:', e);
@@ -64,14 +68,37 @@ export class TagService {
     }
 
     /**
+     * Get a `Tag` by name
+     *
+     * @param name
+     */
+    async getTagByName(name: string): Promise<Tag | null> {
+        try {
+            return await this._tagRepository.findOneBy({ name: name });
+        } catch (e) {
+            this._logger.error('Exception when getting tag:', e);
+            return null;
+        }
+    }
+
+    /**
      * Create a new tag
      *
      * @param createTagDto
      */
     async createTag(createTagDto: CreateTagDto): Promise<string | null> {
         try {
+            // Check if a tag with that name already exists
+            const existingTag = await this.getTagByName(createTagDto.name);
+            if (existingTag) {
+                this._logger.error(`A tag with this name: '${createTagDto.name}' already exists`);
+                return null;
+            }
+
             const tag = new Tag();
             tag.name = createTagDto.name;
+            tag.color = createTagDto.color;
+            tag.show = createTagDto.show;
 
             const db = await this._tagRepository.save(tag);
             return db.tagId;
@@ -88,11 +115,25 @@ export class TagService {
      */
     async updateTag(updateTagDto: UpdateTagDto): Promise<boolean> {
         try {
+            // Check if a tag with that name already exists
+            const existingTag = await this.getTagByName(updateTagDto.name);
+            if (existingTag) {
+                this._logger.error(`A tag with this name: '${updateTagDto.name}' already exists`);
+                return false;
+            }
+
             const tag = await this.getTagById(updateTagDto.tagId);
             if (tag) {
-                tag.name = updateTagDto.name;
+                if (!tag.isEditable) {
+                    this._logger.error(`The tag: '${updateTagDto.name}' may not be edited`);
+                    return false;
+                }
 
-                await this._tagRepository.save(tag);
+                tag.name = updateTagDto.name;
+                tag.show = updateTagDto.show;
+                tag.color = updateTagDto.color;
+
+                await this._databaseService.save(tag);
                 return true;
             }
             return false;
@@ -110,9 +151,17 @@ export class TagService {
     async deleteTag(tagId: string): Promise<boolean> {
         try {
             const tag = await this.getTagById(tagId);
-            if (!tag) return true;
+            if (!tag) {
+                this._logger.log(`Could not find tag '${tagId}' to delete`);
+                return true;
+            }
 
-            await this._tagRepository.remove(tag);
+            if (!tag.isEditable) {
+                this._logger.error(`The tag: '${tag.name}' may not be deleted`);
+                return false;
+            }
+
+            await this._databaseService.remove(tag);
             return true;
         } catch (e) {
             this._logger.error('Exception when deleting tag:', e);
@@ -133,6 +182,9 @@ export class TagService {
         return {
             id: tag.tagId,
             name: tag.name ?? '',
+            show: tag.show,
+            color: tag.color ?? '',
+            isEditable: tag.isEditable,
         };
     }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { TagInfoDto } from './dto/tag-info.dto';
@@ -26,7 +26,7 @@ export class TagController {
     }
 
     @Delete(':id')
-    deleteTag(@Param('id') id: string): Promise<boolean> {
+    deleteTag(@Param('id', ParseUUIDPipe) id: string): Promise<boolean> {
         return this._tagService.deleteTag(id);
     }
 }
