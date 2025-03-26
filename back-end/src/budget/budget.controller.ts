@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { BudgetService } from './budget.service';
 import { BudgetInfoDto } from './dto/budget-info.dto';
@@ -17,17 +17,24 @@ export class BudgetController {
     }
 
     @Get(':id')
-    getBudgetById(@Param('id') id: string): Promise<BudgetInfoDto | null> {
+    getBudgetById(@Param('id', ParseUUIDPipe) id: string): Promise<BudgetInfoDto | null> {
         return this._budgetService.getBudgetInfo(id);
     }
 
     @Get('month/:id/:year/:month')
     getBudgetMonth(
-        @Param('id') id: string,
+        @Param('id', ParseUUIDPipe) id: string,
         @Param('year') year: number,
         @Param('month') month: number
     ): Promise<BudgetMonthCategoryDataDto[] | []> {
         return this._budgetService.getBudgetMonth(id, year, month);
+    }
+
+    @Get('month/:id')
+    getCurrentBudgetMonth(
+        @Param('id', ParseUUIDPipe) id: string
+    ): Promise<BudgetMonthCategoryDataDto[] | []> {
+        return this._budgetService.getCurrentBudgetMonth(id);
     }
 
     @Post()
@@ -41,7 +48,7 @@ export class BudgetController {
     }
 
     @Delete(':id')
-    deleteBudget(@Param('id') id: string): Promise<boolean> {
+    deleteBudget(@Param('id', ParseUUIDPipe) id: string): Promise<boolean> {
         return this._budgetService.deleteBudget(id);
     }
 }

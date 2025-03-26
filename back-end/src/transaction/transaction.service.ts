@@ -53,6 +53,8 @@ export class TransactionService {
             if (transactions.length > 0) {
                 return transactions.map((c) => this._mapTransactionInfo(c));
             }
+
+            this._logger.log('Could not find any transactions');
             return [];
         } catch (e) {
             this._logger.error('Exception when getting all transactions:', e);
@@ -81,6 +83,8 @@ export class TransactionService {
             if (transactions.length > 0) {
                 return transactions.map((c) => this._mapTransactionInfo(c));
             }
+
+            this._logger.log(`Could not find any transactions for payee ${payeeId}`);
             return [];
         } catch (e) {
             this._logger.error('Exception when getting transactions by payee:', e);
@@ -109,6 +113,8 @@ export class TransactionService {
             if (transactions.length > 0) {
                 return transactions.map((c) => this._mapTransactionInfo(c));
             }
+
+            this._logger.log(`Could not find any transactions for account ${accountId}`);
             return [];
         } catch (e) {
             this._logger.error('Exception when getting transactions by account:', e);
@@ -139,6 +145,8 @@ export class TransactionService {
             if (transactions.length > 0) {
                 return transactions.map((c) => this._mapTransactionInfo(c));
             }
+
+            this._logger.log(`Could not find any transactions for category ${categoryId}`);
             return [];
         } catch (e) {
             this._logger.error('Exception when getting transactions by category:', e);
@@ -327,10 +335,16 @@ export class TransactionService {
             const oldPayee = await this._payeeService.getPayeeById(dto.oldPayeeId, [
                 'transactions',
             ]);
-            if (!oldPayee) return -1;
+            if (!oldPayee) {
+                this._logger.error(`Could not find old payee ${dto.oldPayeeId}`);
+                return -1;
+            }
 
             const newPayee = await this._payeeService.getPayeeById(dto.newPayeeId, []);
-            if (!newPayee) return -1;
+            if (!newPayee) {
+                this._logger.error(`Could not find new payee ${dto.newPayeeId}`);
+                return -1;
+            }
 
             if (oldPayee.transactions) {
                 const transactions = oldPayee.transactions;
@@ -340,6 +354,8 @@ export class TransactionService {
                 const result = await this._databaseService.save(transactions);
                 return result?.length ?? 0;
             }
+
+            this._logger.log(`No transactions to move from old payee ${dto.oldPayeeId}`);
             return 0;
         } catch (e) {
             this._logger.error('Exception when moving to new payee:', e);
@@ -357,7 +373,10 @@ export class TransactionService {
             const transaction = await this._transactionRepository.findOneBy({
                 transactionId: id,
             });
-            if (!transaction) return true;
+            if (!transaction) {
+                this._logger.log(`Could not find transaction to delete ${id}`);
+                return true;
+            }
 
             await this._databaseService.remove(transaction);
             return true;

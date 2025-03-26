@@ -20,10 +20,12 @@ async function bootstrap(): Promise<void> {
         .addTag('Account')
         .addTag('Budget')
         .addTag('Category')
+        .addTag('Goal')
         .addTag('Payee')
+        .addTag('Schedule')
         .addTag('Tag')
         .addTag('Transaction')
-        .setVersion('0.0.9')
+        .setVersion('0.0.10')
         .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('', app, document);

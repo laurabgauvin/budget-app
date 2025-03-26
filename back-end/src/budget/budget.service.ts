@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { DatabaseService } from '../database/database.service';
 import { BudgetInfoDto } from './dto/budget-info.dto';
 import { BudgetMonthCategoryDataDto } from './dto/budget-month-category-data.dto';
 import { CreateBudgetDto } from './dto/create-budget.dto';
@@ -22,7 +23,8 @@ export class BudgetService {
         @InjectRepository(BudgetMonthCategory)
         private readonly _budgetMonthCategoryRepository: Repository<BudgetMonthCategory>,
         @InjectRepository(BudgetView)
-        private readonly _budgetViewRepository: Repository<BudgetView>
+        private readonly _budgetViewRepository: Repository<BudgetView>,
+        private readonly _databaseService: DatabaseService
     ) {}
 
     /**
@@ -34,6 +36,8 @@ export class BudgetService {
             if (budgets.length > 0) {
                 return budgets.map((b) => this._mapBudgetInfoDto(b));
             }
+
+            this._logger.log('No budgets found');
             return [];
         } catch (e) {
             this._logger.error('Exception when getting all budgets:', e);
@@ -52,6 +56,8 @@ export class BudgetService {
             if (budget) {
                 return this._mapBudgetInfoDto(budget);
             }
+
+            this._logger.log(`Could not find budget ${id}`);
             return null;
         } catch (e) {
             this._logger.error('Exception when getting budget:', e);
@@ -80,7 +86,8 @@ export class BudgetService {
             if (budgetView.length > 0) {
                 return budgetView.map(
                     (bv): BudgetMonthCategoryDataDto => ({
-                        ...bv,
+                        categoryId: bv.categoryId,
+                        budgetMonthCategoryId: bv.budgetMonthCategoryId,
                         categoryName: bv.categoryName ?? '',
                         amountBudgeted: bv.amountBudgeted ?? 0,
                         amountSpent: bv.amountSpent ?? 0,
@@ -88,11 +95,25 @@ export class BudgetService {
                     })
                 );
             }
+
+            this._logger.log(`No budget month found for ${month}-${year} for ${id}`);
             return [];
         } catch (e) {
             this._logger.error('Exception when getting budget month:', e);
             return [];
         }
+    }
+
+    /**
+     * Get the current budget month
+     *
+     * @param id
+     */
+    async getCurrentBudgetMonth(id: string): Promise<BudgetMonthCategoryDataDto[] | []> {
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+        return await this.getBudgetMonth(id, year, month);
     }
 
     /**
@@ -119,8 +140,11 @@ export class BudgetService {
             const budget = new Budget();
             budget.name = createBudgetDto.name;
 
-            const db = await this._budgetRepository.save(budget);
-            return db.budgetId;
+            const db = await this._databaseService.save(budget);
+            if (db) return db.budgetId;
+
+            this._logger.error(`Could not create budget: ${createBudgetDto.name}`);
+            return null;
         } catch (e) {
             this._logger.error('Exception when creating budget:', e);
             return null;
@@ -138,9 +162,11 @@ export class BudgetService {
             if (budget) {
                 budget.name = updateBudgetDto.name;
 
-                await this._budgetRepository.save(budget);
+                await this._databaseService.save(budget);
                 return true;
             }
+
+            this._logger.warn(`Could not find budget to update: ${updateBudgetDto.budgetId}`);
             return false;
         } catch (e) {
             this._logger.error('Exception when updating budget:', e);
@@ -157,9 +183,11 @@ export class BudgetService {
         try {
             const budget = await this.getBudget(budgetId);
             if (budget) {
-                await this._budgetRepository.softRemove(budget);
+                await this._databaseService.softRemove(budget);
                 return true;
             }
+
+            this._logger.log(`Could not find budget to delete: ${budgetId}`);
             return true;
         } catch (e) {
             this._logger.error('Exception when deleting budget:', e);

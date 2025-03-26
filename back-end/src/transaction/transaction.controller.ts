@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { MoveToPayeeDto } from './dto/move-to-payee.dto';
@@ -21,17 +21,21 @@ export class TransactionController {
     }
 
     @Get('account/:id')
-    getTransactionsByAccount(@Param('id') id: string): Promise<TransactionInfoDto[]> {
+    getTransactionsByAccount(
+        @Param('id', ParseUUIDPipe) id: string
+    ): Promise<TransactionInfoDto[]> {
         return this._transactionService.getTransactionInfosByAccount(id);
     }
 
     @Get('payee/:id')
-    getTransactionsByPayee(@Param('id') id: string): Promise<TransactionInfoDto[]> {
+    getTransactionsByPayee(@Param('id', ParseUUIDPipe) id: string): Promise<TransactionInfoDto[]> {
         return this._transactionService.getTransactionInfosByPayee(id);
     }
 
     @Get('category/:id')
-    getTransactionsByCategory(@Param('id') id: string): Promise<TransactionInfoDto[]> {
+    getTransactionsByCategory(
+        @Param('id', ParseUUIDPipe) id: string
+    ): Promise<TransactionInfoDto[]> {
         return this._transactionService.getTransactionInfosByCategory(id);
     }
 
@@ -63,7 +67,7 @@ export class TransactionController {
     // -----------------------------------------------------------------------------------------------------
 
     @Delete(':id')
-    deleteTransaction(@Param('id') id: string): Promise<boolean> {
+    deleteTransaction(@Param('id', ParseUUIDPipe) id: string): Promise<boolean> {
         return this._transactionService.deleteTransaction(id);
     }
 }

@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Category } from '../../category/entities/category.entity';
-import { Schedule } from '../../database/entities/schedule.entity';
 import { ColumnNumericTransformer } from '../../database/utilities/column-numeric.transformer';
+import { Schedule } from '../../schedule/entities/schedule.entity';
 
 @Entity()
 export class Goal {
@@ -27,18 +27,6 @@ export class Goal {
     })
     @JoinColumn()
     schedule: Schedule | undefined;
-
-    @Column({
-        type: 'date',
-        nullable: true,
-    })
-    startDate: Date | undefined;
-
-    @Column({
-        type: 'date',
-        nullable: true,
-    })
-    endDate: Date | undefined;
 
     @Column({
         type: 'numeric',
