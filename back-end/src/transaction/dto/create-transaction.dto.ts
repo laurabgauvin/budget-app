@@ -1,6 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsDateString, IsEnum, IsNumber, IsString, IsUUID, ValidateNested } from 'class-validator';
+import {
+    IsDateString,
+    IsEnum,
+    IsNumber,
+    IsOptional,
+    IsString,
+    IsUUID,
+    ValidateNested,
+} from 'class-validator';
 import { TransactionStatus } from '../entities/transaction.entity';
 
 export class TransactionCategoryDto {
@@ -25,6 +33,11 @@ export class CreateTransactionDto {
     @ApiProperty()
     @IsDateString({ strict: true })
     date!: Date;
+
+    @ApiProperty({ type: 'string' })
+    @IsOptional()
+    @IsUUID()
+    scheduleId: string | undefined;
 
     @ApiProperty()
     @IsUUID()

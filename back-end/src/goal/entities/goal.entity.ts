@@ -31,7 +31,7 @@ export class Goal {
     })
     description: string | undefined;
 
-    @ManyToOne(() => Category, {
+    @ManyToOne(() => Category, (category) => category.goals, {
         onDelete: 'RESTRICT',
         nullable: false,
     })
@@ -57,7 +57,7 @@ export class Goal {
     })
     endDate: Date | undefined;
 
-    @ManyToOne(() => Schedule, {
+    @ManyToOne(() => Schedule, (schedule) => schedule.goals, {
         onDelete: 'RESTRICT',
         nullable: true,
     })

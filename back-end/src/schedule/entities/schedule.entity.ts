@@ -7,6 +7,7 @@ import {
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Goal } from '../../goal/entities/goal.entity';
+import { Transaction } from '../../transaction/entities/transaction.entity';
 
 export enum ScheduleFrequency {
     Year = 'year',
@@ -63,4 +64,7 @@ export class Schedule {
 
     @OneToMany(() => Goal, (goal) => goal.schedule)
     goals: Goal[] | undefined;
+
+    @OneToMany(() => Transaction, (transaction) => transaction.schedule)
+    scheduledTransactions: Transaction[] | undefined;
 }

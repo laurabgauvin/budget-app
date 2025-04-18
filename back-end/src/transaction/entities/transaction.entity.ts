@@ -14,6 +14,7 @@ import { Account } from '../../account/entities/account.entity';
 import { TransactionCategory } from '../../category/entities/transaction-category.entity';
 import { ColumnNumericTransformer } from '../../database/utilities/column-numeric.transformer';
 import { Payee } from '../../payee/entities/payee.entity';
+import { Schedule } from '../../schedule/entities/schedule.entity';
 import { Tag } from '../../tag/entities/tag.entity';
 
 export enum TransactionStatus {
@@ -33,7 +34,13 @@ export class Transaction {
     })
     date: Date | undefined;
 
-    // Note: may be undefined if the account linked has been soft deleted
+    @ManyToOne(() => Schedule, (schedule) => schedule.scheduledTransactions, {
+        onDelete: 'RESTRICT',
+        nullable: true,
+    })
+    @JoinColumn()
+    schedule: Schedule | undefined | null;
+
     @ManyToOne(() => Account, (account) => account.transactions, {
         cascade: true,
         onDelete: 'RESTRICT',
@@ -41,7 +48,7 @@ export class Transaction {
     })
     @JoinColumn()
     @Index()
-    account: Account | undefined;
+    account: Account | undefined; // Note: may be undefined if the account linked has been soft-deleted
 
     @ManyToOne(() => Payee, (payee) => payee.transactions, {
         cascade: true,

@@ -114,6 +114,7 @@ export class ScheduleService {
                 return false;
             }
 
+            // TODO: allow editing display order
             if (!schedule.isEditable) {
                 this._logger.error(`The schedule: '${schedule.displayName}' may not be edited`);
                 return false;

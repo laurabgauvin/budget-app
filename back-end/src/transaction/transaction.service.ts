@@ -5,6 +5,7 @@ import { AccountService } from '../account/account.service';
 import { CategoryService } from '../category/category.service';
 import { DatabaseService } from '../database/database.service';
 import { PayeeService } from '../payee/payee.service';
+import { ScheduleService } from '../schedule/schedule.service';
 import { TagService } from '../tag/tag.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { MoveToPayeeDto } from './dto/move-to-payee.dto';
@@ -36,7 +37,8 @@ export class TransactionService {
         private readonly _accountService: AccountService,
         private readonly _tagService: TagService,
         private readonly _dataSource: DataSource,
-        private readonly _databaseService: DatabaseService
+        private readonly _databaseService: DatabaseService,
+        private readonly _scheduleService: ScheduleService
     ) {}
 
     /**
@@ -203,7 +205,7 @@ export class TransactionService {
                 }
             }
 
-            // Start DB transaction
+            // Start database transaction
             const queryRunner = this._dataSource.createQueryRunner();
             await queryRunner.connect();
             await queryRunner.startTransaction();
@@ -211,13 +213,10 @@ export class TransactionService {
             try {
                 // Create transaction
                 const transaction = new Transaction();
-                transaction.date = transactionDto.date;
+                await this._setTransactionProperties(transactionDto, transaction);
                 transaction.account = account;
                 transaction.payee = payee;
                 transaction.totalAmount = transactionDto.amount;
-                transaction.notes = transactionDto.notes;
-                transaction.status = transactionDto.status;
-                transaction.tags = await this._tagService.getTagsById(transactionDto.tags);
                 await this._databaseService.save(transaction, queryRunner);
                 if (!transaction.transactionId) {
                     this._logger.error('Could not create Transaction record');
@@ -281,12 +280,9 @@ export class TransactionService {
             }
 
             // Update transaction information
-            transaction.date = transactionDto.date;
+            await this._setTransactionProperties(transactionDto, transaction);
             if (transaction.totalAmount !== transactionDto.amount)
                 transaction.totalAmount = transactionDto.amount;
-            transaction.notes = transactionDto.notes;
-            transaction.status = transactionDto.status;
-            transaction.tags = await this._tagService.getTagsById(transactionDto.tags);
 
             // Update account
             if (
@@ -436,5 +432,24 @@ export class TransactionService {
                           .sort((a, b) => a.order - b.order)
                     : [],
         };
+    }
+
+    /**
+     * Set the properties of a `Transaction` from a `CreateTransactionDto`
+     *
+     * @param dto
+     * @param transaction
+     */
+    private async _setTransactionProperties(
+        dto: CreateTransactionDto,
+        transaction: Transaction
+    ): Promise<void> {
+        transaction.date = dto.date;
+        transaction.notes = dto.notes;
+        transaction.status = dto.status;
+        transaction.tags = await this._tagService.getTagsById(dto.tags);
+        transaction.schedule = dto.scheduleId
+            ? await this._scheduleService.getSchedule(dto.scheduleId)
+            : undefined;
     }
 }

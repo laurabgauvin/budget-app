@@ -91,6 +91,7 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
         transaction: Transaction,
         beforeAfter: 'before' | 'after'
     ): Promise<void> {
+        // TODO: need to exclude future transactions
         try {
             let accountId: string | undefined = transaction.account?.accountId;
             if (!accountId) {
