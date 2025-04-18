@@ -20,6 +20,7 @@ export class BudgetMonth {
     @ManyToOne(() => Budget, (budget) => budget.months, {
         cascade: true,
         onDelete: 'CASCADE',
+        nullable: false,
     })
     @JoinColumn()
     budget!: Budget;

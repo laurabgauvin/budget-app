@@ -25,7 +25,7 @@ async function bootstrap(): Promise<void> {
         .addTag('Schedule')
         .addTag('Tag')
         .addTag('Transaction')
-        .setVersion('0.0.10')
+        .setVersion('0.0.11')
         .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('', app, document);

@@ -24,6 +24,7 @@ export class TransactionCategory {
     @ManyToOne(() => Transaction, (transaction) => transaction.transactionCategories, {
         cascade: true,
         onDelete: 'CASCADE',
+        nullable: false,
     })
     @JoinColumn()
     @Index()
@@ -32,6 +33,7 @@ export class TransactionCategory {
     @ManyToOne(() => Category, (category) => category.transactionCategories, {
         cascade: true,
         onDelete: 'RESTRICT',
+        nullable: false,
     })
     @JoinColumn()
     @Index()

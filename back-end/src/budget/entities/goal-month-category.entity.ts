@@ -5,39 +5,46 @@ import {
     Index,
     JoinColumn,
     ManyToOne,
-    OneToMany,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Category } from '../../category/entities/category.entity';
 import { ColumnNumericTransformer } from '../../database/utilities/column-numeric.transformer';
-import { BudgetMonth } from './budget-month.entity';
-import { GoalMonthCategory } from './goal-month-category.entity';
+import { Goal } from '../../goal/entities/goal.entity';
+import { BudgetMonthCategory } from './budget-month-category.entity';
 
 @Entity()
-@Index(['budgetMonth', 'category'], {
+@Index(['goal', 'budgetMonthCategory'], {
     unique: true,
 })
-export class BudgetMonthCategory {
+export class GoalMonthCategory {
     @PrimaryGeneratedColumn({
         type: 'integer',
     })
-    budgetMonthCategoryId!: number;
+    goalMonthCategoryId!: number;
 
-    @ManyToOne(() => BudgetMonth, (budgetMonth) => budgetMonth.categories, {
+    @ManyToOne(() => Goal, (goal) => goal.goalMonthCategories, {
         cascade: true,
         onDelete: 'CASCADE',
         nullable: false,
     })
     @JoinColumn()
-    budgetMonth!: BudgetMonth;
+    goal!: Goal;
 
-    @ManyToOne(() => Category, (category) => category.budgetMonths, {
+    @ManyToOne(() => BudgetMonthCategory, (bmc) => bmc.goalMonthCategories, {
         cascade: true,
         onDelete: 'CASCADE',
         nullable: false,
     })
     @JoinColumn()
-    category!: Category;
+    budgetMonthCategory!: BudgetMonthCategory;
+
+    @Column({
+        type: 'numeric',
+        precision: 15,
+        scale: 2,
+        nullable: true,
+        transformer: new ColumnNumericTransformer(),
+    })
+    amountToBudget: number | undefined;
 
     @Column({
         type: 'numeric',
@@ -48,12 +55,16 @@ export class BudgetMonthCategory {
     })
     amountBudgeted: number | undefined;
 
+    @Column({
+        type: 'boolean',
+        generatedType: 'STORED',
+        asExpression: `COALESCE("amount_budgeted", 0) >= COALESCE("amount_to_budget", 0)`,
+    })
+    readonly isAmountMet!: boolean;
+
     @CreateDateColumn({
         type: 'timestamptz',
         nullable: false,
     })
     createdDate!: Date;
-
-    @OneToMany(() => GoalMonthCategory, (gmc) => gmc.budgetMonthCategory)
-    goalMonthCategories: GoalMonthCategory[] | undefined;
 }

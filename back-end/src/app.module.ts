@@ -7,6 +7,7 @@ import { BudgetMonthCategory } from './budget/entities/budget-month-category.ent
 import { BudgetMonth } from './budget/entities/budget-month.entity';
 import { Budget } from './budget/entities/budget.entity';
 import { BudgetView } from './budget/entities/budget.view';
+import { GoalMonthCategory } from './budget/entities/goal-month-category.entity';
 import { CategoryModule } from './category/category.module';
 import { Category } from './category/entities/category.entity';
 import { TransactionCategory } from './category/entities/transaction-category.entity';
@@ -43,6 +44,7 @@ import { TransactionModule } from './transaction/transaction.module';
                 BudgetView,
                 Category,
                 Goal,
+                GoalMonthCategory,
                 Payee,
                 Schedule,
                 Tag,
