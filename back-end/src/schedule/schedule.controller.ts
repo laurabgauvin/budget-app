@@ -1,5 +1,8 @@
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { CreateScheduleDto } from './dto/create-schedule.dto';
+import { ScheduleInfoDto } from './dto/schedule-info.dto';
+import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { ScheduleService } from './schedule.service';
 
 @ApiTags('Schedule')
@@ -7,14 +10,14 @@ import { ScheduleService } from './schedule.service';
 export class ScheduleController {
     constructor(private readonly _scheduleService: ScheduleService) {}
 
-    /**@Get()
+    @Get()
     getAllSchedules(): Promise<ScheduleInfoDto[]> {
         return this._scheduleService.getAllScheduleInfos();
     }
 
     @Get(':id')
     getScheduleById(@Param('id', ParseUUIDPipe) id: string): Promise<ScheduleInfoDto | null> {
-        return this._scheduleService.getScheduleById(id);
+        return this._scheduleService.getScheduleInfo(id);
     }
 
     @Post()
@@ -30,5 +33,5 @@ export class ScheduleController {
     @Delete(':id')
     deleteSchedule(@Param('id', ParseUUIDPipe) id: string): Promise<boolean> {
         return this._scheduleService.deleteSchedule(id);
-    }*/
+    }
 }

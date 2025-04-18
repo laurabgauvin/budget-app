@@ -44,7 +44,7 @@ export class CategoryService {
         try {
             const categories = await this._categoryRepository.find();
             if (categories.length > 0) {
-                return categories.map((c) => this._mapCategoryInfo(c));
+                return categories.map((c) => this.mapCategoryInfo(c));
             }
 
             this._logger.log('No categories found');
@@ -64,7 +64,7 @@ export class CategoryService {
         try {
             const category = await this.getCategoryById(id);
             if (category) {
-                return this._mapCategoryInfo(category);
+                return this.mapCategoryInfo(category);
             }
 
             this._logger.warn(`Could not find category ${id}`);
@@ -369,22 +369,22 @@ export class CategoryService {
         }
     }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Private methods
-    // -----------------------------------------------------------------------------------------------------
-
     /**
      * Map a `Category` to a `CategoryInfoDto`
      *
      * @param category
      */
-    private _mapCategoryInfo(category: Category): CategoryInfoDto {
+    mapCategoryInfo(category: Category): CategoryInfoDto {
         return {
             categoryId: category.categoryId,
             name: category.name,
             isEditable: category.isEditable,
         };
     }
+
+    // -----------------------------------------------------------------------------------------------------
+    // @ Private methods
+    // -----------------------------------------------------------------------------------------------------
 
     /**
      * Get the `TransactionCategory` for the transaction ID. Loads `Category` relation

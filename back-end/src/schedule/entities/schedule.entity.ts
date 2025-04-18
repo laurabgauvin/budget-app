@@ -1,34 +1,21 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    Index,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Goal } from '../../goal/entities/goal.entity';
 
 export enum ScheduleFrequency {
-    None = 'none',
     Year = 'year',
     Month = 'month',
     Week = 'week',
     Day = 'day',
 }
 
-export enum ScheduleDaysOfWeek {
-    Monday = 'monday',
-    Tuesday = 'tuesday',
-    Wednesday = 'wednesday',
-    Thursday = 'thursday',
-    Friday = 'friday',
-    Saturday = 'saturday',
-    Sunday = 'sunday',
-}
-
-/* Example of schedules:
-- Every 1 {FrequencyInterval} month {Frequency} on the 15 and EOM {OnDays (EOM = 32)}
-- Every 1 {FrequencyInterval} month {Frequency} on the 3rd {Every} Monday {OnDaysOfWeek}
-- Every 1 {FrequencyInterval} month {Frequency} on the last {Every (last = 7)} Friday {OnDaysOfWeek}
-- Every 2 {FrequencyInterval} week  {Frequency} on Friday {OnDaysOfWeek}
-- Every 1 {FrequencyInterval} week  {Frequency} on Monday, Tuesday, Friday {OnDaysOfWeek}
-- Every 1 {FrequencyInterval} year  {Frequency} on January {OnMonth} 15 {OnDays}
-- Every 1 {FrequencyInterval} year  {Frequency} on the 2nd {Every} Tuesday {OnDaysOfWeek} of March {OnMonth}
-- Every 2 {FrequencyInterval} days  {Frequency}
- */
+@Index(['frequency', 'interval'], { unique: true })
 @Entity()
 export class Schedule {
     @PrimaryGeneratedColumn('uuid')
@@ -37,7 +24,7 @@ export class Schedule {
     @Column({
         type: 'enum',
         enum: ScheduleFrequency,
-        default: ScheduleFrequency.None,
+        default: ScheduleFrequency.Month,
         nullable: false,
     })
     frequency!: ScheduleFrequency;
@@ -47,49 +34,26 @@ export class Schedule {
         default: 1,
         nullable: false,
     })
-    frequencyInterval!: number;
+    interval!: number;
 
     @Column({
-        type: 'integer',
-        default: 1,
+        type: 'text',
         nullable: false,
     })
-    every!: number;
+    displayName!: string;
 
     @Column({
-        type: 'date',
-        default: () => 'CURRENT_DATE',
+        type: 'boolean',
+        default: true,
         nullable: false,
     })
-    startDate!: Date;
-
-    @Column({
-        type: 'date',
-        nullable: true,
-    })
-    endDate: Date | undefined;
-
-    @Column({
-        type: 'enum',
-        array: true,
-        enum: ScheduleDaysOfWeek,
-        nullable: true,
-    })
-    onDaysOfWeek: ScheduleDaysOfWeek[] | undefined;
+    isEditable!: boolean;
 
     @Column({
         type: 'integer',
-        array: true,
         nullable: true,
     })
-    onDays: number[] | undefined;
-
-    // January = 1
-    @Column({
-        type: 'integer',
-        nullable: true,
-    })
-    onMonth: number | undefined;
+    displayOrder: number | undefined;
 
     @CreateDateColumn({
         type: 'timestamptz',

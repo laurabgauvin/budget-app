@@ -1,13 +1,10 @@
-import { ScheduleDaysOfWeek, ScheduleFrequency } from '../entities/schedule.entity';
+import { ScheduleFrequency } from '../entities/schedule.entity';
 
 export interface ScheduleInfoDto {
     scheduleId: string;
+    displayName: string;
     frequency: ScheduleFrequency;
     interval: number | undefined;
-    every: number | undefined;
-    startDate: Date;
-    endDate: Date | undefined;
-    onDaysOfWeek: ScheduleDaysOfWeek[] | undefined;
-    onDays: number[] | undefined;
-    onMonth: number | undefined;
+    displayOrder: number | undefined;
+    isEditable: boolean;
 }

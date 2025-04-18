@@ -192,26 +192,15 @@ export class GoalService {
             goalId: goal.goalId,
             name: goal.name,
             description: goal.description,
-            category: {
-                categoryId: goal.category.categoryId,
-                name: goal.category.name,
-                isEditable: goal.category.isEditable,
-            },
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            category: goal.category
+                ? this._categoryService.mapCategoryInfo(goal.category)
+                : undefined,
             totalAmount: goal.totalAmount,
             startDate: goal.startDate,
             endDate: goal.endDate,
             schedule: goal.schedule
-                ? {
-                      scheduleId: goal.schedule.scheduleId,
-                      frequency: goal.schedule.frequency,
-                      interval: goal.schedule.frequencyInterval,
-                      every: goal.schedule.every,
-                      startDate: goal.schedule.startDate,
-                      endDate: goal.schedule.endDate,
-                      onDaysOfWeek: goal.schedule.onDaysOfWeek,
-                      onDays: goal.schedule.onDays,
-                      onMonth: goal.schedule.onMonth,
-                  }
+                ? this._scheduleService.mapScheduleInfoDto(goal.schedule)
                 : undefined,
         };
     }
@@ -240,7 +229,7 @@ export class GoalService {
             );
 
         if (dto.scheduleId) {
-            const schedule = await this._scheduleService.getScheduleById(dto.scheduleId);
+            const schedule = await this._scheduleService.getSchedule(dto.scheduleId);
             if (schedule) goal.schedule = schedule;
         }
     }
