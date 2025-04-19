@@ -14,7 +14,7 @@ interface BudgetRow {
     selector: 'app-budget',
     templateUrl: './budget.component.html',
     styleUrl: './budget.component.scss',
-    imports: [MatTableModule, CommonModule]
+    imports: [MatTableModule, CommonModule],
 })
 export class BudgetComponent {
     displayedColumns: string[] = ['categoryName', 'budgeted', 'spent', 'available'];

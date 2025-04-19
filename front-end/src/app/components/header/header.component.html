@@ -1,21 +1,25 @@
-<div class="header-container">
-    <h3>This is the title</h3>
-    <div class="link-container">
-        <div class="link">
+<div class="flex flex-col border-b border-base-200">
+    <h3 class="text-center my-2">Budget App</h3>
+    <div class="flex flex-row items-center mx-20 mb-2 justify-between">
+        <button class="link" mat-button routerLink="dashboard">
+            <mat-icon class="material-symbols-outlined">analytics</mat-icon>
+            <span>Dashboard</span>
+        </button>
+        <button class="link" mat-button routerLink="budget">
             <mat-icon class="material-symbols-outlined">account_balance_wallet</mat-icon>
             <span>Budget</span>
-        </div>
-        <div class="link">
-            <mat-icon class="material-symbols-outlined">monitoring</mat-icon>
-            <span>Reports</span>
-        </div>
-        <div class="link">
+        </button>
+        <button class="link" mat-button>
             <mat-icon class="material-symbols-outlined">account_balance</mat-icon>
             <span>Accounts</span>
-        </div>
-        <div class="link">
+        </button>
+        <button class="link" mat-button routerLink="transactions">
             <mat-icon class="material-symbols-outlined">payments</mat-icon>
             <span>Transactions</span>
-        </div>
+        </button>
+        <button class="link" mat-button>
+            <mat-icon class="material-symbols-outlined">monitoring</mat-icon>
+            <span>Reports</span>
+        </button>
     </div>
 </div>
