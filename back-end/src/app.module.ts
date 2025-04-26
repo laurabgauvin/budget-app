@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AccountModule } from './account/account.module';
 import { Account } from './account/entities/account.entity';
@@ -28,35 +29,42 @@ import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forRoot({
-            type: 'postgres',
-            host: 'localhost',
-            port: 5432,
-            username: 'postgres',
-            password: 'pux1qucvdzznc4CAV',
-            database: 'postgres',
-            schema: 'public',
-            entities: [
-                Account,
-                Budget,
-                BudgetMonth,
-                BudgetMonthCategory,
-                BudgetView,
-                Category,
-                Goal,
-                GoalMonthCategory,
-                Payee,
-                Schedule,
-                Tag,
-                Transaction,
-                TransactionCategory,
-            ],
-            namingStrategy: NAMING_STRATEGY,
-            subscribers: [TransactionSubscriber],
-            // PROD: synchronize true should not be used in prod
-            synchronize: true,
-            migrationsRun: true,
-            migrations: [InsertDefaultValues1736724703103],
+        ConfigModule.forRoot({
+            envFilePath: '.development.env',
+            isGlobal: true,
+        }),
+        TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService) => ({
+                type: 'postgres',
+                host: configService.get('DB_HOST'),
+                port: configService.get('DB_PORT'),
+                username: configService.get('DB_USERNAME'),
+                password: configService.get('DB_PASSWORD'),
+                database: configService.get('DB_DATABASE'),
+                schema: configService.get('DB_SCHEMA'),
+                entities: [
+                    Account,
+                    Budget,
+                    BudgetMonth,
+                    BudgetMonthCategory,
+                    BudgetView,
+                    Category,
+                    Goal,
+                    GoalMonthCategory,
+                    Payee,
+                    Schedule,
+                    Tag,
+                    Transaction,
+                    TransactionCategory,
+                ],
+                namingStrategy: NAMING_STRATEGY,
+                subscribers: [TransactionSubscriber],
+                synchronize: configService.get('DB_SYNCHRONIZE') === 'true',
+                migrationsRun: configService.get('DB_MIGRATIONS_RUN') === 'true',
+                migrations: [InsertDefaultValues1736724703103],
+            }),
+            inject: [ConfigService],
         }),
         AccountModule,
         BudgetModule,
