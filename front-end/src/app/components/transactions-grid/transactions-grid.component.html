@@ -51,7 +51,7 @@
         <td *matCellDef="let transaction" mat-cell>
             <mat-chip-set>
                 @for (tag of transaction.tags; track tag.tagId) {
-                    <mat-chip class="m-x-2" disableRipple>{{ tag.tagName }}</mat-chip>
+                    <mat-chip class="tag-chip" disableRipple>{{ tag.tagName }}</mat-chip>
                 }
             </mat-chip-set>
         </td>
@@ -63,8 +63,8 @@
         <td *matCellDef="let transaction" mat-cell>
             <button
                 [ngClass]="{
-                    '!text-green-500': transaction.isCleared(),
-                    '!text-amber-500': !transaction.isCleared(),
+                    'status-cleared': transaction.isCleared(),
+                    'status-uncleared': !transaction.isCleared(),
                 }"
                 class="material-symbols-outlined"
                 mat-icon-button>

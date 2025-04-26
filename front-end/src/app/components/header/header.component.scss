@@ -1,5 +1,29 @@
-.link {
-    @apply flex;
-    @apply flex-row;
-    @apply items-center;
+.header-container {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid black;
+}
+
+.app-title {
+    text-align: center;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+}
+
+.nav-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-left: 5rem;
+    margin-right: 5rem;
+    margin-bottom: 0.5rem;
+    justify-content: space-between;
+}
+
+.nav-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
