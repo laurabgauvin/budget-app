@@ -1,0 +1,78 @@
+<table [dataSource]="dataSource" mat-table>
+    <!-- Date Column -->
+    <ng-container matColumnDef="date">
+        <th *matHeaderCellDef mat-header-cell>Date</th>
+        <td *matCellDef="let transaction" mat-cell>
+            {{ transaction.date | date: 'mediumDate' }}
+        </td>
+    </ng-container>
+
+    <!-- Account Column -->
+    <ng-container matColumnDef="accountName">
+        <th *matHeaderCellDef mat-header-cell>Account</th>
+        <td *matCellDef="let transaction" mat-cell>
+            {{ transaction.accountName }}
+        </td>
+    </ng-container>
+
+    <!-- Payee Column -->
+    <ng-container matColumnDef="payeeName">
+        <th *matHeaderCellDef mat-header-cell>Payee</th>
+        <td *matCellDef="let transaction" mat-cell>
+            {{ transaction.payeeName }}
+        </td>
+    </ng-container>
+
+    <!-- Category Column -->
+    <ng-container matColumnDef="categoryName">
+        <th *matHeaderCellDef mat-header-cell>Category</th>
+        <td *matCellDef="let transaction" mat-cell>
+            {{ transaction.categoryName }}
+        </td>
+    </ng-container>
+
+    <!-- Notes Column -->
+    <ng-container matColumnDef="notes">
+        <th *matHeaderCellDef mat-header-cell>Notes</th>
+        <td *matCellDef="let transaction" mat-cell>
+            {{ transaction.notes }}
+        </td>
+    </ng-container>
+
+    <!-- Amount Column -->
+    <ng-container matColumnDef="totalAmount">
+        <th *matHeaderCellDef mat-header-cell>Amount</th>
+        <td *matCellDef="let transaction" mat-cell>{{ transaction.totalAmount | currency }}</td>
+    </ng-container>
+
+    <!-- Tags Column -->
+    <ng-container matColumnDef="tags">
+        <th *matHeaderCellDef mat-header-cell>Tags</th>
+        <td *matCellDef="let transaction" mat-cell>
+            <mat-chip-set>
+                @for (tag of transaction.tags; track tag.tagId) {
+                    <mat-chip class="m-x-2" disableRipple>{{ tag.tagName }}</mat-chip>
+                }
+            </mat-chip-set>
+        </td>
+    </ng-container>
+
+    <!-- Status Column -->
+    <ng-container matColumnDef="status">
+        <th *matHeaderCellDef mat-header-cell>Status</th>
+        <td *matCellDef="let transaction" mat-cell>
+            <button
+                [ngClass]="{
+                    '!text-green-500': transaction.isCleared(),
+                    '!text-amber-500': !transaction.isCleared(),
+                }"
+                class="material-symbols-outlined"
+                mat-icon-button>
+                check_circle
+            </button>
+        </td>
+    </ng-container>
+
+    <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
+    <tr *matRowDef="let row; columns: displayedColumns" mat-row></tr>
+</table>
