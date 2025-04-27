@@ -141,13 +141,13 @@ export class AccountService {
             return null;
         }
 
-        // Start DB transaction
+        // Start database transaction
         const queryRunner = this._dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try {
-            // Create account
+            // Create a new account
             const account = new Account();
             account.name = createAccountDto.name;
             account.type = createAccountDto.type;
@@ -160,7 +160,7 @@ export class AccountService {
             }
 
             if (createAccountDto.balance && createAccountDto.balance > 0) {
-                // Create starter transaction
+                // Create a starter transaction
                 const defaultPayee = await this._payeeService.getStartingBalancePayee();
                 if (defaultPayee) {
                     const starterTran = new Transaction();
@@ -178,9 +178,15 @@ export class AccountService {
                         tranCat.order = 0;
                         await this._databaseService.save(tranCat, queryRunner);
                     }
+
+                    // Explicitly update the account balance to match the starter transaction
+                    await queryRunner.manager.update(Account, account.accountId, {
+                        balance: createAccountDto.balance,
+                    });
                 }
             }
 
+            // Commit transaction
             await queryRunner.commitTransaction();
             return account.accountId;
         } catch (e) {

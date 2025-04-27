@@ -16,7 +16,7 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
     private readonly _logger = new Logger(TransactionSubscriber.name);
 
     /**
-     * Indicates that this subscriber only listen to `Transaction` events
+     * Indicates that this subscriber only listens to `Transaction` events
      */
     listenTo(): typeof Transaction {
         return Transaction;
