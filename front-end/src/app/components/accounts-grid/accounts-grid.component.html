@@ -1,0 +1,55 @@
+<table [dataSource]="dataSource()" mat-table>
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+        <th *matHeaderCellDef mat-header-cell>Account Name</th>
+        <td *matCellDef="let account" mat-cell>
+            {{ account.name }}
+        </td>
+    </ng-container>
+
+    <!-- Type Column -->
+    <ng-container matColumnDef="type">
+        <th *matHeaderCellDef mat-header-cell>Type</th>
+        <td *matCellDef="let account" mat-cell>
+            {{ account.type.displayName }}
+        </td>
+    </ng-container>
+
+    <!-- Balance Column -->
+    <ng-container matColumnDef="balance">
+        <th *matHeaderCellDef mat-header-cell>Balance</th>
+        <td *matCellDef="let account" mat-cell>{{ account.balance | currency }}</td>
+    </ng-container>
+
+    <!-- Status Column -->
+    <ng-container matColumnDef="tracked">
+        <th *matHeaderCellDef mat-header-cell>Tracked</th>
+        <td *matCellDef="let account" mat-cell>
+            <button
+                [ngClass]="{
+                    'status-tracked': account.tracked,
+                    'status-not-tracked': !account.tracked,
+                }"
+                class="material-symbols-outlined"
+                mat-icon-button>
+                check_circle
+            </button>
+        </td>
+    </ng-container>
+
+    <!-- Actions Column -->
+    <ng-container matColumnDef="actions">
+        <th *matHeaderCellDef mat-header-cell>Actions</th>
+        <td *matCellDef="let account" mat-cell>
+            <button
+                class="material-symbols-outlined"
+                mat-icon-button
+                matTooltip="View Transactions">
+                receipt_long
+            </button>
+        </td>
+    </ng-container>
+
+    <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
+    <tr *matRowDef="let row; columns: displayedColumns" mat-row></tr>
+</table>

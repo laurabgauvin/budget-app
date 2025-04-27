@@ -28,9 +28,9 @@ export class TransactionsGridComponent {
         'tags',
         'status',
     ];
-    dataSource = new MatTableDataSource<TransactionRow>(testData);
+    dataSource = new MatTableDataSource<TransactionRow>(TEST_DATA);
 }
-const testData: TransactionRow[] = [
+const TEST_DATA: TransactionRow[] = [
     {
         transactionId: '1',
         date: new Date(2023, 5, 15),

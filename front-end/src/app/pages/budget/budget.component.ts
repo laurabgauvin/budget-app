@@ -18,10 +18,10 @@ interface BudgetRow {
 })
 export class BudgetComponent {
     displayedColumns: string[] = ['categoryName', 'budgeted', 'spent', 'available'];
-    dataSource = new MatTableDataSource<BudgetRow>(testData);
+    dataSource = new MatTableDataSource<BudgetRow>(TEST_DATA);
 }
 
-const testData: BudgetRow[] = [
+const TEST_DATA: BudgetRow[] = [
     {
         categoryId: 1,
         categoryName: 'Mortgage',
