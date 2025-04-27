@@ -62,10 +62,8 @@
         <th *matHeaderCellDef mat-header-cell>Status</th>
         <td *matCellDef="let transaction" mat-cell>
             <button
-                [ngClass]="{
-                    'status-cleared': transaction.isCleared(),
-                    'status-uncleared': !transaction.isCleared(),
-                }"
+                [class.status-cleared]="transaction.isCleared()"
+                [class.status-uncleared]="!transaction.isCleared()"
                 class="material-symbols-outlined"
                 mat-icon-button>
                 check_circle

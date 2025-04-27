@@ -1,6 +1,10 @@
 <div class="header-container">
     <h2 class="subheader">List of Accounts</h2>
-    <button class="create-account-button" color="primary" mat-raised-button routerLink="create">
+    <button
+        (click)="createAccount()"
+        class="create-account-button"
+        color="primary"
+        mat-raised-button>
         Create Account
     </button>
 </div>
