@@ -20,6 +20,7 @@ export enum AccountType {
     Loan = 'loan',
     Asset = 'asset',
     Liability = 'liability',
+    Investment = 'investment',
 }
 
 @Entity()

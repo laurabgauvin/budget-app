@@ -1,9 +1,9 @@
-import { AccountType } from '../entities/account.entity';
+import { AccountTypeInfoDto } from './account-type-info.dto';
 
 export interface AccountInfoDto {
     accountId: string;
     name: string;
-    type: AccountType;
+    type: AccountTypeInfoDto;
     balance: number;
     tracked: boolean;
 }

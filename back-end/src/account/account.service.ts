@@ -6,9 +6,10 @@ import { DatabaseService } from '../database/database.service';
 import { PayeeService } from '../payee/payee.service';
 import { Transaction } from '../transaction/entities/transaction.entity';
 import { AccountInfoDto } from './dto/account-info.dto';
+import { AccountTypeInfoDto } from './dto/account-type-info.dto';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
-import { Account } from './entities/account.entity';
+import { Account, AccountType } from './entities/account.entity';
 
 @Injectable()
 export class AccountService {
@@ -106,6 +107,22 @@ export class AccountService {
         } catch (e) {
             this._logger.error('Exception when getting account balance:', e);
             return -1;
+        }
+    }
+
+    /**
+     * Get all valid account types with display names
+     */
+    getValidAccountTypes(): Promise<AccountTypeInfoDto[]> {
+        try {
+            const accountTypes = Object.values(AccountType)
+                .map((t) => this._mapAccountTypeInfo(t))
+                .sort((a, b) => a.displayName.localeCompare(b.displayName))
+                .sort((a, b) => a.categoryHeader.localeCompare(b.categoryHeader));
+            return Promise.resolve(accountTypes);
+        } catch (e) {
+            this._logger.error('Exception when getting all account types:', e);
+            return Promise.resolve([]);
         }
     }
 
@@ -248,9 +265,79 @@ export class AccountService {
         return {
             accountId: account.accountId,
             name: account.name ?? '',
-            type: account.type,
+            type: this._mapAccountTypeInfo(account.type),
             balance: account.balance ?? 0,
             tracked: account.tracked,
         };
+    }
+
+    /**
+     * Map a `AccountType` to a `AccountTypeInfoDto`
+     *
+     * @param type
+     */
+    private _mapAccountTypeInfo(type: AccountType): AccountTypeInfoDto {
+        return {
+            type: type,
+            displayName: this._getAccountTypeDisplayName(type),
+            categoryHeader: this._getAccountTypeCategoryHeader(type),
+        };
+    }
+
+    /**
+     * Get the display name for a given account type
+     *
+     * @param type
+     */
+    private _getAccountTypeDisplayName(type: AccountType): string {
+        switch (type) {
+            case AccountType.Cash:
+                return 'Cash';
+            case AccountType.Checking:
+                return 'Checking';
+            case AccountType.Savings:
+                return 'Savings';
+            case AccountType.CreditCard:
+                return 'Credit Card';
+            case AccountType.LineOfCredit:
+                return 'Line of Credit';
+            case AccountType.Mortgage:
+                return 'Mortgage';
+            case AccountType.Loan:
+                return 'Loan';
+            case AccountType.Asset:
+                return 'Asset';
+            case AccountType.Liability:
+                return 'Liability';
+            case AccountType.Investment:
+                return 'Investment';
+            default:
+                return type;
+        }
+    }
+
+    /**
+     * Get the category header for a given account type
+     *
+     * @param type
+     */
+    private _getAccountTypeCategoryHeader(type: AccountType): string {
+        switch (type) {
+            case AccountType.Cash:
+            case AccountType.Checking:
+            case AccountType.Savings:
+                return 'Cash';
+            case AccountType.CreditCard:
+            case AccountType.LineOfCredit:
+                return 'Credit';
+            case AccountType.Mortgage:
+            case AccountType.Loan:
+                return 'Loan';
+            case AccountType.Asset:
+            case AccountType.Investment:
+            case AccountType.Liability:
+            default:
+                return 'Other Asset or Liability';
+        }
     }
 }

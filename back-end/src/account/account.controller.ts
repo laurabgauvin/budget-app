@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put } from '
 import { ApiTags } from '@nestjs/swagger';
 import { AccountService } from './account.service';
 import { AccountInfoDto } from './dto/account-info.dto';
+import { AccountTypeInfoDto } from './dto/account-type-info.dto';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 
@@ -19,7 +20,7 @@ export class AccountController {
         return this._accountService.getAllAccountInfos();
     }
 
-    @Get(':id')
+    @Get('id/:id')
     getAccountById(@Param('id', ParseUUIDPipe) id: string): Promise<AccountInfoDto | null> {
         return this._accountService.getAccountInfoById(id);
     }
@@ -32,6 +33,11 @@ export class AccountController {
     @Get('balance/:id')
     getAccountBalance(@Param('id', ParseUUIDPipe) id: string): Promise<number> {
         return this._accountService.getAccountBalance(id);
+    }
+
+    @Get('types')
+    getAccountTypes(): Promise<AccountTypeInfoDto[]> {
+        return this._accountService.getValidAccountTypes();
     }
 
     // -----------------------------------------------------------------------------------------------------
