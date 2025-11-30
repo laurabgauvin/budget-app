@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,7 +8,7 @@ import { Router, RouterModule } from '@angular/router';
     selector: 'app-header',
     templateUrl: './header.component.html',
     styleUrl: './header.component.scss',
-    imports: [CommonModule, RouterModule, MatButtonModule, MatIconModule],
+    imports: [RouterModule, MatButtonModule, MatIconModule],
     standalone: true,
 })
 export class HeaderComponent {

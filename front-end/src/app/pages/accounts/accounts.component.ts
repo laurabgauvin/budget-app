@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -10,7 +10,7 @@ import { AccountsGridComponent } from '../../components/accounts-grid/accounts-g
     selector: 'app-accounts',
     templateUrl: './accounts.component.html',
     styleUrl: './accounts.component.scss',
-    imports: [AccountsGridComponent, CommonModule, MatButtonModule, RouterModule, MatDialogModule],
+    imports: [AccountsGridComponent, MatButtonModule, RouterModule, MatDialogModule],
 })
 export class AccountsComponent {
     private readonly _dialog: MatDialog = inject(MatDialog);
