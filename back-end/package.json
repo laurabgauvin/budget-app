@@ -17,9 +17,10 @@
     },
     "private": true,
     "dependencies": {
-        "@nestjs/common": "^11.0.6",
+        "@nestjs/common": "^11.1.16",
         "@nestjs/config": "^4.0.2",
         "@nestjs/core": "^11.1.16",
+        "@nestjs/mapped-types": "^2.1.0",
         "@nestjs/platform-express": "^11.0.6",
         "@nestjs/swagger": "^11.0.3",
         "@nestjs/typeorm": "^11.0.0",
