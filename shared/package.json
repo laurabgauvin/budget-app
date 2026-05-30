@@ -1,0 +1,33 @@
+{
+  "name": "budget-app-shared",
+  "private": true,
+  "type": "module",
+  "description": "Shared DTOs for client and server.",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    "./dto": {
+      "types": "./src/dto.ts",
+      "default": "./dist/dto.js"
+    },
+    "./interface": {
+      "types": "./src/interface.ts",
+      "default": "./dist/interface.js"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -b --force",
+    "prepare": "npm run build",
+    "lint": "eslint . --fix"
+  },
+  "dependencies": {
+    "@nestjs/swagger": "^11.4.4",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1"
+  }
+}
