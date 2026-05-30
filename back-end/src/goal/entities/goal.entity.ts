@@ -27,6 +27,14 @@ export class Goal {
 
     @Column({
         type: 'text',
+        generatedType: 'STORED',
+        asExpression: `UPPER(TRIM(BOTH FROM name))`,
+    })
+    @Index({ unique: true })
+    readonly normalizedName!: string;
+
+    @Column({
+        type: 'text',
         nullable: true,
     })
     description: string | undefined;
@@ -42,10 +50,11 @@ export class Goal {
         type: 'numeric',
         precision: 15,
         scale: 2,
-        nullable: true,
+        nullable: false,
+        default: 0,
         transformer: new ColumnNumericTransformer(),
     })
-    totalAmount: number | undefined;
+    totalAmount!: number;
 
     @Column('date', {
         nullable: true,

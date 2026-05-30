@@ -43,10 +43,11 @@ export class TransactionCategory {
         type: 'numeric',
         precision: 15,
         scale: 2,
-        nullable: true,
+        nullable: false,
+        default: 0,
         transformer: new ColumnNumericTransformer(),
     })
-    amount: number | undefined;
+    amount!: number;
 
     @Column('text', {
         nullable: true,

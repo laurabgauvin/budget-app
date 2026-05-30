@@ -4,6 +4,7 @@ import { DataSource, Repository } from 'typeorm';
 import { TransactionCategory } from '../category/entities/transaction-category.entity';
 import { DatabaseService } from '../database/database.service';
 import { PayeeService } from '../payee/payee.service';
+import { normalizeName } from '../shared/utilities';
 import { Transaction } from '../transaction/entities/transaction.entity';
 import { AccountInfoDto } from './dto/account-info.dto';
 import { AccountTypeInfoDto } from './dto/account-type-info.dto';
@@ -60,15 +61,16 @@ export class AccountService {
     }
 
     /**
-     * Get a single payee `AccountInfoDto` by name. Checks deleted records
+     * Get a single account `AccountInfoDto` by name. Checks deleted records
      *
      * @param name
      */
     async getAccountInfoByName(name: string): Promise<AccountInfoDto | null> {
         try {
+            const nameSearch = normalizeName(name);
             const account = await this._accountRepository.findOne({
                 where: {
-                    name: name,
+                    normalizedName: nameSearch,
                 },
                 withDeleted: true,
             });
@@ -263,14 +265,14 @@ export class AccountService {
     // -----------------------------------------------------------------------------------------------------
 
     /**
-     * Map a `Account` to a `AccountInfoDto`
+     * Map an ` Account ` to an ` AccountInfoDto `
      *
      * @param account
      */
     private _mapAccountInfo(account: Account): AccountInfoDto {
         return {
             accountId: account.accountId,
-            name: account.name ?? '',
+            name: account.name,
             type: this._mapAccountTypeInfo(account.type),
             balance: account.balance ?? 0,
             tracked: account.tracked,
@@ -278,7 +280,7 @@ export class AccountService {
     }
 
     /**
-     * Map a `AccountType` to a `AccountTypeInfoDto`
+     * Map an ` AccountType ` to an ` AccountTypeInfoDto `
      *
      * @param type
      */

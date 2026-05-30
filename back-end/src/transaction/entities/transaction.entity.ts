@@ -63,10 +63,11 @@ export class Transaction {
         type: 'numeric',
         precision: 15,
         scale: 2,
-        nullable: true,
+        nullable: false,
+        default: 0,
         transformer: new ColumnNumericTransformer(),
     })
-    totalAmount: number | undefined;
+    totalAmount!: number;
 
     @Column('text', {
         nullable: true,

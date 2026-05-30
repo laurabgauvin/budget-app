@@ -94,22 +94,22 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
         // TODO: need to exclude future transactions
         try {
             let accountId: string | undefined = transaction.account?.accountId;
-            if (!accountId) {
-                accountId = (
-                    await manager.findOne<Transaction>(
-                        {
-                            type: transaction,
-                            name: 'transaction',
+            accountId ??= (
+                await manager.findOne<Transaction>(
+                    {
+                        type: transaction,
+                        name: 'transaction',
+                    },
+                    {
+                        where: {
+                            transactionId: transaction.transactionId,
                         },
-                        {
-                            where: {
-                                transactionId: transaction.transactionId,
-                            },
-                            relations: ['account'],
-                        }
-                    )
-                )?.account?.accountId;
-            }
+                        relations: {
+                            account: true,
+                        },
+                    }
+                )
+            )?.account?.accountId;
             if (!accountId) {
                 this._logger.error(
                     'Could not determine account id when auto-updating account balance'
@@ -124,7 +124,6 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
                         type: transaction,
                         name: 'transaction',
                     },
-                    // @ts-expect-error columnName is valid
                     'totalAmount',
                     {
                         account: {
@@ -132,7 +131,7 @@ export class TransactionSubscriber implements EntitySubscriberInterface<Transact
                         },
                     }
                 )) ?? 0;
-            if (beforeAfter === 'before') newBalance -= Number(transaction.totalAmount ?? 0);
+            if (beforeAfter === 'before') newBalance -= transaction.totalAmount;
 
             await manager.update(Account, accountId, { balance: newBalance });
         } catch (e) {

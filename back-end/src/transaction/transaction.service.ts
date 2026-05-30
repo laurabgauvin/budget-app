@@ -167,7 +167,10 @@ export class TransactionService {
                 where: {
                     transactionId: id,
                 },
-                relations: ['account', 'payee'],
+                relations: {
+                    account: true,
+                    payee: true,
+                },
             });
         } catch (e) {
             this._logger.error('Exception when getting transaction:', e);
@@ -188,7 +191,7 @@ export class TransactionService {
                 return null;
             }
 
-            const payee = await this._payeeService.getPayeeById(transactionDto.payeeId, []);
+            const payee = await this._payeeService.getPayeeById(transactionDto.payeeId);
             if (!payee) {
                 this._logger.error('Invalid payee, cannot create transaction');
                 return null;
@@ -285,10 +288,7 @@ export class TransactionService {
                 transaction.totalAmount = transactionDto.amount;
 
             // Update account
-            if (
-                transaction.account === undefined ||
-                transaction.account.accountId !== transactionDto.accountId
-            ) {
+            if (transaction.account?.accountId !== transactionDto.accountId) {
                 const account = await this._accountService.getAccountById(transactionDto.accountId);
                 if (account) {
                     transaction.account = account;
@@ -297,7 +297,7 @@ export class TransactionService {
 
             // Update payee
             if (transaction.payee.payeeId !== transactionDto.payeeId) {
-                const payee = await this._payeeService.getPayeeById(transactionDto.payeeId, []);
+                const payee = await this._payeeService.getPayeeById(transactionDto.payeeId);
                 if (payee) {
                     transaction.payee = payee;
                 }
@@ -328,15 +328,15 @@ export class TransactionService {
      */
     async moveToPayee(dto: MoveToPayeeDto): Promise<number> {
         try {
-            const oldPayee = await this._payeeService.getPayeeById(dto.oldPayeeId, [
-                'transactions',
-            ]);
+            const oldPayee = await this._payeeService.getPayeeById(dto.oldPayeeId, {
+                transactions: true,
+            });
             if (!oldPayee) {
                 this._logger.error(`Could not find old payee ${dto.oldPayeeId}`);
                 return -1;
             }
 
-            const newPayee = await this._payeeService.getPayeeById(dto.newPayeeId, []);
+            const newPayee = await this._payeeService.getPayeeById(dto.newPayeeId);
             if (!newPayee) {
                 this._logger.error(`Could not find new payee ${dto.newPayeeId}`);
                 return -1;
@@ -398,23 +398,23 @@ export class TransactionService {
             accountId: transaction.account?.accountId ?? '',
             accountName: transaction.account?.name ?? '',
             payeeId: transaction.payee.payeeId,
-            payeeName: transaction.payee.name ?? '',
+            payeeName: transaction.payee.name,
             categoryId:
                 transaction.transactionCategories?.length === 1
                     ? transaction.transactionCategories[0].category.categoryId
                     : '',
             categoryName:
-                (transaction.transactionCategories?.length === 1
+                transaction.transactionCategories?.length === 1
                     ? transaction.transactionCategories[0].category.name
-                    : 'Split') ?? '',
-            totalAmount: transaction.totalAmount ?? 0,
+                    : 'Split',
+            totalAmount: transaction.totalAmount,
             notes: transaction.notes ?? '',
             status: transaction.status,
             tags:
                 transaction.tags?.map(
                     (tag): TransactionTagInfoDto => ({
                         tagId: tag.tagId,
-                        tagName: tag.name ?? '',
+                        tagName: tag.name,
                     })
                 ) ?? [],
             subCategories:
@@ -423,8 +423,8 @@ export class TransactionService {
                           .map(
                               (tc): TransactionCategoryInfoDto => ({
                                   categoryId: tc.category.categoryId,
-                                  categoryName: tc.category.name ?? '',
-                                  amount: tc.amount ?? 0,
+                                  categoryName: tc.category.name,
+                                  amount: tc.amount,
                                   notes: tc.notes ?? '',
                                   order: tc.order,
                               })

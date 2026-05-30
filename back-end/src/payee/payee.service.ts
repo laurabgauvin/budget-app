@@ -1,15 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isUUID } from 'class-validator';
-import { Repository } from 'typeorm';
+import { FindOptionsRelations, Repository } from 'typeorm';
 import { CategoryService } from '../category/category.service';
 import { DatabaseService } from '../database/database.service';
+import { normalizeName } from '../shared/utilities';
 import { CreatePayeeDto } from './dto/create-payee.dto';
 import { PayeeInfoDto } from './dto/payee-info.dto';
 import { UpdatePayeeDto } from './dto/update-payee.dto';
 import { Payee, PayeeType } from './entities/payee.entity';
-
-export type PayeeRelation = 'defaultCategory' | 'transactions';
 
 @Injectable()
 export class PayeeService {
@@ -54,7 +53,9 @@ export class PayeeService {
      */
     async getPayeeInfo(id: string): Promise<PayeeInfoDto | null> {
         try {
-            const payee = await this.getPayeeById(id, ['defaultCategory']);
+            const payee = await this.getPayeeById(id, {
+                defaultCategory: true,
+            });
             if (payee) {
                 return this._mapPayeeInfo(payee);
             }
@@ -74,8 +75,11 @@ export class PayeeService {
      */
     async getPayeeInfoByName(name: string): Promise<PayeeInfoDto | null> {
         try {
+            const nameSearch = normalizeName(name);
             const payee = await this._payeeRepository.findOne({
-                where: { name: name },
+                where: {
+                    normalizedName: nameSearch,
+                },
                 relations: {
                     defaultCategory: true,
                 },
@@ -98,7 +102,10 @@ export class PayeeService {
      * @param id
      * @param loadRelations
      */
-    async getPayeeById(id: string, loadRelations: PayeeRelation[]): Promise<Payee | null> {
+    async getPayeeById(
+        id: string,
+        loadRelations: FindOptionsRelations<Payee> = {}
+    ): Promise<Payee | null> {
         try {
             return await this._payeeRepository.findOne({
                 where: {
@@ -119,7 +126,9 @@ export class PayeeService {
      */
     async getPayeeTransactionCount(id: string): Promise<number> {
         try {
-            const payee = await this.getPayeeById(id, ['transactions']);
+            const payee = await this.getPayeeById(id, {
+                transactions: true,
+            });
             if (!payee) return 0;
 
             return payee.transactions?.length ?? 0;
@@ -203,7 +212,9 @@ export class PayeeService {
                 return false;
             }
 
-            const payee = await this.getPayeeById(updatePayeeDto.payeeId, ['defaultCategory']);
+            const payee = await this.getPayeeById(updatePayeeDto.payeeId, {
+                defaultCategory: true,
+            });
             if (!payee) {
                 this._logger.warn(`Could not find payee: '${updatePayeeDto.payeeId}' to update`);
                 return false;
@@ -246,7 +257,9 @@ export class PayeeService {
      */
     async deletePayee(id: string): Promise<boolean> {
         try {
-            const payee = await this.getPayeeById(id, ['transactions']);
+            const payee = await this.getPayeeById(id, {
+                transactions: true,
+            });
             if (!payee) return true;
 
             if (payee.type === PayeeType.StartingBalance) {

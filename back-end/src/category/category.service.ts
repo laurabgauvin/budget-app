@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { QueryRunner, Repository } from 'typeorm';
+import { FindOptionsRelations, QueryRunner, Repository } from 'typeorm';
 import { DatabaseService } from '../database/database.service';
+import { normalizeName } from '../shared/utilities';
 import { TransactionCategoryDto } from '../transaction/dto/create-transaction.dto';
 import { Transaction } from '../transaction/entities/transaction.entity';
 import { CategoryInfoDto } from './dto/category-info.dto';
@@ -22,8 +23,6 @@ interface CompareTransactionCategories {
     removed: TransactionCategory[];
     updated: UpdatedCategoryInfo[];
 }
-
-export type CategoryRelations = 'budgetMonths' | 'transactionCategories' | 'goals';
 
 @Injectable()
 export class CategoryService {
@@ -83,7 +82,7 @@ export class CategoryService {
      */
     async getCategoryById(
         id: string,
-        loadRelations: CategoryRelations[] = []
+        loadRelations: FindOptionsRelations<Category> = {}
     ): Promise<Category | null> {
         try {
             return await this._categoryRepository.findOne({
@@ -99,21 +98,19 @@ export class CategoryService {
     }
 
     /**
-     * Get a `Category` by name
+     * Get a `Category` by name. Checks deleted records
      *
      * @param name
      */
     async getCategoryByName(name: string): Promise<Category | null> {
         try {
-            const category = await this._categoryRepository.findOne({
+            const nameSearch = normalizeName(name);
+            return await this._categoryRepository.findOne({
                 where: {
-                    name: name,
+                    normalizedName: nameSearch,
                 },
+                withDeleted: true,
             });
-            if (category) return category;
-
-            this._logger.log(`No category found with name: '${name}'`);
-            return null;
         } catch (e) {
             this._logger.error('Exception when getting the category by name:', e);
             return null;
@@ -159,7 +156,7 @@ export class CategoryService {
         try {
             // Check if a category with that name already exists
             const existingCategory = await this.getCategoryByName(updateCategoryDto.name);
-            if (existingCategory) {
+            if (existingCategory && existingCategory.categoryId !== updateCategoryDto.categoryId) {
                 this._logger.error(
                     `A category with this name: '${updateCategoryDto.name}' already exists`
                 );
@@ -196,7 +193,9 @@ export class CategoryService {
      */
     async deleteCategory(id: string): Promise<boolean> {
         try {
-            const category = await this.getCategoryById(id, ['transactionCategories']);
+            const category = await this.getCategoryById(id, {
+                transactionCategories: true,
+            });
             if (!category) {
                 this._logger.log(`Could not find category to delete: ${id}`);
                 return true;

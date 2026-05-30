@@ -52,9 +52,10 @@ export class Schedule {
 
     @Column({
         type: 'integer',
-        nullable: true,
+        nullable: false,
+        default: 0,
     })
-    displayOrder: number | undefined;
+    displayOrder!: number;
 
     @CreateDateColumn({
         type: 'timestamptz',

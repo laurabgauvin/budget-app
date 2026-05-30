@@ -20,3 +20,12 @@ export function sortByDate(
     }
     return b.getTime() - a.getTime();
 }
+
+/**
+ * Normalize the name for `normalizedName` search
+ *
+ * @param name
+ */
+export function normalizeName(name: string): string {
+    return name.toUpperCase().trim();
+}

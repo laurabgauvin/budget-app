@@ -22,10 +22,17 @@ export class Payee {
     payeeId!: string;
 
     @Column('text', {
-        nullable: true,
-        unique: true,
+        nullable: false,
     })
-    name: string | undefined;
+    name!: string;
+
+    @Column({
+        type: 'text',
+        generatedType: 'STORED',
+        asExpression: `UPPER(TRIM(BOTH FROM name))`,
+    })
+    @Index({ unique: true })
+    readonly normalizedName!: string;
 
     @ManyToOne(() => Category, {
         onDelete: 'SET NULL',

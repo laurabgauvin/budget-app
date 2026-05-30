@@ -41,19 +41,21 @@ export class GoalMonthCategory {
         type: 'numeric',
         precision: 15,
         scale: 2,
-        nullable: true,
+        nullable: false,
+        default: 0,
         transformer: new ColumnNumericTransformer(),
     })
-    amountToBudget: number | undefined;
+    amountToBudget!: number;
 
     @Column({
         type: 'numeric',
         precision: 15,
         scale: 2,
-        nullable: true,
+        nullable: false,
+        default: 0,
         transformer: new ColumnNumericTransformer(),
     })
-    amountBudgeted: number | undefined;
+    amountBudgeted!: number;
 
     @Column({
         type: 'boolean',

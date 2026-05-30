@@ -4,6 +4,7 @@ import { FindManyOptions, IsNull, Not, Repository } from 'typeorm';
 import { CategoryService } from '../category/category.service';
 import { DatabaseService } from '../database/database.service';
 import { ScheduleService } from '../schedule/schedule.service';
+import { normalizeName } from '../shared/utilities';
 import { CreateGoalDto } from './dto/create-goal.dto';
 import { GoalInfoDto } from './dto/goal-info.dto';
 import { UpdateGoalDto } from './dto/update-goal.dto';
@@ -29,7 +30,10 @@ export class GoalService {
     async getAllGoalInfos(archived: boolean): Promise<GoalInfoDto[]> {
         try {
             const findOptions: FindManyOptions<Goal> = {
-                relations: ['category', 'schedule'],
+                relations: {
+                    category: true,
+                    schedule: true,
+                },
                 withDeleted: archived,
             };
 
@@ -84,11 +88,34 @@ export class GoalService {
                 where: {
                     goalId: id,
                 },
-                relations: ['category', 'schedule'],
+                relations: {
+                    category: true,
+                    schedule: true,
+                },
                 withDeleted: archived,
             });
         } catch (e) {
             this._logger.error('Exception when getting goal:', e);
+            return null;
+        }
+    }
+
+    /**
+     * Get a `Goal` by name. Checks deleted records
+     *
+     * @param name
+     */
+    async getGoalByName(name: string): Promise<Goal | null> {
+        try {
+            const nameSearch = normalizeName(name);
+            return await this._goalRepository.findOne({
+                where: {
+                    normalizedName: nameSearch,
+                },
+                withDeleted: true,
+            });
+        } catch (e) {
+            this._logger.error('Exception when getting the goal by name:', e);
             return null;
         }
     }
@@ -100,6 +127,13 @@ export class GoalService {
      */
     async createGoal(dto: CreateGoalDto): Promise<string | null> {
         try {
+            // Check if a goal with that name already exists
+            const existingGoal = await this.getGoalByName(dto.name);
+            if (existingGoal) {
+                this._logger.error(`A goal with this name: '${dto.name}' already exists`);
+                return null;
+            }
+
             const goal = new Goal();
             await this._setGoalProperties(dto, goal);
 
@@ -121,6 +155,13 @@ export class GoalService {
      */
     async updateGoal(dto: UpdateGoalDto): Promise<boolean> {
         try {
+            // Check if a category with that name already exists
+            const existingGoal = await this.getGoalByName(dto.name);
+            if (existingGoal && existingGoal.goalId !== dto.goalId) {
+                this._logger.error(`A goal with this name: '${dto.name}' already exists`);
+                return false;
+            }
+
             const goal = await this.getGoal(dto.goalId);
             if (goal) {
                 await this._setGoalProperties(dto, goal);

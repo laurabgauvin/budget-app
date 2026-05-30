@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { DatabaseService } from '../database/database.service';
+import { normalizeName } from '../shared/utilities';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { TagInfoDto } from './dto/tag-info.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
@@ -74,7 +75,10 @@ export class TagService {
      */
     async getTagByName(name: string): Promise<Tag | null> {
         try {
-            return await this._tagRepository.findOneBy({ name: name });
+            const nameSearch = normalizeName(name);
+            return await this._tagRepository.findOneBy({
+                normalizedName: nameSearch,
+            });
         } catch (e) {
             this._logger.error('Exception when getting tag:', e);
             return null;
@@ -121,7 +125,7 @@ export class TagService {
         try {
             // Check if a tag with that name already exists
             const existingTag = await this.getTagByName(updateTagDto.name);
-            if (existingTag) {
+            if (existingTag && existingTag.tagId !== updateTagDto.tagId) {
                 this._logger.error(`A tag with this name: '${updateTagDto.name}' already exists`);
                 return false;
             }
@@ -185,7 +189,7 @@ export class TagService {
     private _mapTagInfo(tag: Tag): TagInfoDto {
         return {
             id: tag.tagId,
-            name: tag.name ?? '',
+            name: tag.name,
             show: tag.show,
             color: tag.color ?? '',
             isEditable: tag.isEditable,

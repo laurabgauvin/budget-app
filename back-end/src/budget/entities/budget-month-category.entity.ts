@@ -43,10 +43,11 @@ export class BudgetMonthCategory {
         type: 'numeric',
         precision: 15,
         scale: 2,
-        nullable: true,
+        nullable: false,
+        default: 0,
         transformer: new ColumnNumericTransformer(),
     })
-    amountBudgeted: number | undefined;
+    amountBudgeted!: number;
 
     @CreateDateColumn({
         type: 'timestamptz',

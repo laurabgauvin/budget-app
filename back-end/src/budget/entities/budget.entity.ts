@@ -3,6 +3,7 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
+    Index,
     OneToMany,
     PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -10,14 +11,19 @@ import { BudgetMonth } from './budget-month.entity';
 
 @Entity()
 export class Budget {
-    @PrimaryGeneratedColumn('uuid', {
-        name: 'budget_id',
-        primaryKeyConstraintName: 'budget_pkey',
-    })
+    @PrimaryGeneratedColumn('uuid')
     budgetId!: string;
 
-    @Column('text', { nullable: true })
-    name: string | undefined;
+    @Column('text', { nullable: false })
+    name!: string;
+
+    @Column({
+        type: 'text',
+        generatedType: 'STORED',
+        asExpression: `UPPER(TRIM(BOTH FROM name))`,
+    })
+    @Index({ unique: true })
+    readonly normalizedName!: string;
 
     @CreateDateColumn({
         type: 'timestamptz',

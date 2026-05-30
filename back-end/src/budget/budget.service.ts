@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DatabaseService } from '../database/database.service';
+import { normalizeName } from '../shared/utilities';
 import { BudgetInfoDto } from './dto/budget-info.dto';
 import { BudgetMonthCategoryDataDto } from './dto/budget-month-category-data.dto';
 import { CreateBudgetDto } from './dto/create-budget.dto';
@@ -88,7 +89,7 @@ export class BudgetService {
                     (bv): BudgetMonthCategoryDataDto => ({
                         categoryId: bv.categoryId,
                         budgetMonthCategoryId: bv.budgetMonthCategoryId,
-                        categoryName: bv.categoryName ?? '',
+                        categoryName: bv.categoryName,
                         amountBudgeted: bv.amountBudgeted ?? 0,
                         amountSpent: bv.amountSpent ?? 0,
                         amountAvailable: bv.amountAvailable ?? 0,
@@ -131,12 +132,41 @@ export class BudgetService {
     }
 
     /**
+     * Get a single `Budget` by name. Checks deleted records
+     *
+     * @param name
+     */
+    async getBudgetByName(name: string): Promise<Budget | null> {
+        try {
+            const nameSearch = normalizeName(name);
+            return await this._budgetRepository.findOne({
+                where: {
+                    normalizedName: nameSearch,
+                },
+                withDeleted: true,
+            });
+        } catch (e) {
+            this._logger.error('Exception when getting the budget by name:', e);
+            return null;
+        }
+    }
+
+    /**
      * Create a new budget
      *
      * @param createBudgetDto
      */
     async createBudget(createBudgetDto: CreateBudgetDto): Promise<string | null> {
         try {
+            // Check if a budget with that name already exists
+            const existingBudget = await this.getBudgetByName(createBudgetDto.name);
+            if (existingBudget) {
+                this._logger.error(
+                    `A budget with this name: '${createBudgetDto.name}' already exists`
+                );
+                return null;
+            }
+
             const budget = new Budget();
             budget.name = createBudgetDto.name;
 
@@ -158,6 +188,15 @@ export class BudgetService {
      */
     async updateBudget(updateBudgetDto: UpdateBudgetDto): Promise<boolean> {
         try {
+            // Check if a budget with that name already exists
+            const existingBudget = await this.getBudgetByName(updateBudgetDto.name);
+            if (existingBudget && existingBudget.budgetId !== updateBudgetDto.budgetId) {
+                this._logger.error(
+                    `A budget with this name: '${updateBudgetDto.name}' already exists`
+                );
+                return false;
+            }
+
             const budget = await this.getBudget(updateBudgetDto.budgetId);
             if (budget) {
                 budget.name = updateBudgetDto.name;

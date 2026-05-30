@@ -74,7 +74,7 @@ export class BudgetView {
     categoryId!: string;
 
     @ViewColumn()
-    categoryName: string | undefined;
+    categoryName!: string;
 
     @ViewColumn()
     budgetMonthCategoryId!: number;

@@ -1,4 +1,11 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    Index,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { BudgetMonthCategory } from '../../budget/entities/budget-month-category.entity';
 import { Goal } from '../../goal/entities/goal.entity';
 import { TransactionCategory } from './transaction-category.entity';
@@ -10,10 +17,17 @@ export class Category {
 
     @Column({
         type: 'text',
-        nullable: true,
-        unique: true,
+        nullable: false,
     })
-    name: string | undefined;
+    name!: string;
+
+    @Column({
+        type: 'text',
+        generatedType: 'STORED',
+        asExpression: `UPPER(TRIM(BOTH FROM name))`,
+    })
+    @Index({ unique: true })
+    readonly normalizedName!: string;
 
     @Column({
         type: 'boolean',

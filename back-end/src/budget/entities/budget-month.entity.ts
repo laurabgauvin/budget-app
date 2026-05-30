@@ -26,14 +26,14 @@ export class BudgetMonth {
     budget!: Budget;
 
     @Column('integer', {
-        nullable: true,
+        nullable: false,
     })
-    year: number | undefined;
+    year!: number;
 
     @Column('integer', {
-        nullable: true,
+        nullable: false,
     })
-    month: number | undefined;
+    month!: number;
 
     @CreateDateColumn({
         type: 'timestamptz',
