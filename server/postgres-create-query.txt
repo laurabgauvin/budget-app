@@ -1,0 +1,188 @@
+drop view budget_view;
+drop table transaction_category;
+drop table transaction_tag;
+drop table transaction;
+drop table tag;
+drop type transaction_status_enum;
+drop table payee;
+drop table budget_month_category;
+drop table category;
+drop type account_type_enum;
+drop table account;
+drop table budget_month;
+drop table budget;
+
+-- ACCOUNT
+create type account_type_enum as enum ('cash', 'checking', 'savings', 'credit_card', 'line_of_credit', 'mortgage', 'loan', 'asset', 'liability');
+alter type account_type_enum owner to postgres;
+
+create table account
+(
+    account_id uuid default gen_random_uuid() not null primary key,
+    name       text,
+    balance    numeric(15, 2),
+    type       account_type_enum default 'cash' not null,
+    tracked    boolean default true not null
+);
+alter table account owner to postgres;
+
+-- CATEGORY
+create table category
+(
+    category_id uuid default gen_random_uuid() not null primary key,
+    name        text
+);
+alter table category owner to postgres;
+
+-- PAYEE
+create table payee
+(
+    payee_id            uuid default gen_random_uuid() not null primary key,
+    name                text,
+    default_category_id uuid references category(category_id)
+);
+alter table payee owner to postgres;
+
+-- TAG
+create table tag
+(
+    tag_id uuid default gen_random_uuid() not null primary key,
+    name   text
+);
+alter table tag owner to postgres;
+
+-- TRANSACTION
+create type transaction_status_enum as enum ('pending', 'cleared');
+alter type transaction_status_enum owner to postgres;
+
+create table transaction
+(
+    transaction_id uuid default gen_random_uuid() not null primary key,
+    date           date default now(),
+    account_id     uuid references account on delete restrict,
+    payee_id       uuid references payee on delete restrict,
+    total_amount   numeric(15, 2),
+    notes          text,
+    status         transaction_status_enum default 'pending' not null
+);
+alter table transaction owner to postgres;
+
+-- TRANSACTION TAG
+create table transaction_tag
+(
+    transaction_tag_id uuid default gen_random_uuid() not null primary key,
+    transaction_id     uuid references transaction on delete cascade,
+    tag_id             uuid references tag on delete cascade
+);
+alter table transaction_tag owner to postgres;
+create unique index on transaction_tag (
+    transaction_id, tag_id
+);
+create index on transaction_tag (
+    transaction_id
+);
+
+-- TRANSACTION CATEGORY
+create table transaction_category
+(
+    transaction_category_id serial primary key,
+    transaction_id          uuid references transaction on delete cascade,
+    category_id             uuid references category on delete restrict,
+    amount                  numeric(15, 2),
+    notes                   text
+);
+alter table transaction_category owner to postgres;
+create index on transaction_category (
+    transaction_id
+);
+
+-- BUDGET
+create table budget
+(
+    budget_id    uuid default gen_random_uuid() not null primary key,
+    name         text,
+    deleted_date date
+);
+alter table budget owner to postgres;
+
+-- BUDGET MONTH
+create table budget_month
+(
+    budget_month_id  uuid default gen_random_uuid() not null primary key,
+    budget_id        uuid references budget on delete cascade,
+    year             integer,
+    month            integer
+);
+alter table budget_month owner to postgres;
+create unique index on budget_month (
+    budget_id, year, month
+);
+
+-- BUDGET MONTH CATEGORY
+create table budget_month_category
+(
+    budget_month_category_id serial primary key,
+    budget_month_id    uuid references budget_month on delete cascade,
+    category_id        uuid references category on delete cascade,
+    amount_budgeted    numeric(15, 2)
+);
+alter table budget_month_category owner to postgres;
+
+-- BUDGET VIEW
+create view budget_view as
+select
+    b.budget_id,
+    bm.budget_month_id,
+    bm.year,
+    bm.month,
+    bmc.category_id,
+    c.name as category_name,
+    bmc.budget_month_category_id,
+    bmc.amount_budgeted,
+    coalesce(sum(tc1.amount), 0) as amount_spent,
+    bmc.amount_budgeted - coalesce(sum(tc1.amount), 0) as amount_available
+from
+    budget_month_category bmc
+join
+    budget_month bm on bm.budget_month_id = bmc.budget_month_id
+join
+    budget b on b.budget_id = bm.budget_id
+join
+    category c on c.category_id = bmc.category_id
+left join
+    (select
+        tc2.category_id,
+        t.date,
+        sum(tc2.amount) AS amount
+    from
+        transaction_category tc2
+    join
+        transaction t ON tc2.transaction_id = t.transaction_id
+    join
+        account a on t.account_id = a.account_id
+    where
+        a.tracked = true
+    group by
+        tc2.category_id,
+        t.date
+    ) tc1
+    on bmc.category_id = tc1.category_id
+        and extract(year from tc1.date) = bm.year
+        and extract(month from tc1.date) = bm.month
+group by
+    b.budget_id,
+    bm.budget_month_id,
+    bm.year,
+    bm.month,
+    bmc.category_id,
+    c.name,
+    bmc.budget_month_category_id,
+    bmc.amount_budgeted
+order by
+    b.budget_id,
+    bm.year,
+    bm.month,
+    bmc.category_id;
+alter view budget_view owner to postgres;
+--drop view budget_view;
+--select * from budget_view;
